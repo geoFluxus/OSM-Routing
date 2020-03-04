@@ -153,15 +153,9 @@ def reverse_edge(edge):
     return QgsGeometry.fromPolyline(pts)
 
 # Traverse intersections
-new_graph = {} # Graph of new network
-grouped = {} # Initialize groups
 for inter, is_inter in inters.items():
     # Not an intersection, skip
     if not(is_inter): continue
-    
-    # Include inter to new graph
-    new_graph[inter] = []
-    grouped[inter] =  False
     
     # Traverse all edges of the intersection!
     edges = graph[inter]
@@ -221,14 +215,29 @@ for inter, is_inter in inters.items():
         fet_geom = QgsGeometry.fromPolyline(pts)
         fet.setGeometry(fet_geom)
         provider.addFeatures([fet])
-        
-        # Add as edge to vertex
-        new_graph[inter].append(fet_geom)
 
 # Publish SEGMENTS layer
 segmentLayer.commitChanges()
 proj.addMapLayer(segmentLayer)
 
+
+# Build new graph
+graph = {}
+grouped = {} # Mark as grouped
+feats = segmentLayer.getFeatures()
+for feat in feats:
+    geom = feat.geometry()
+    pts = geom.get()
+    
+    # Now, each edge has as edge points
+    # ALWAYS intersections!!!
+    for vex in [pts[0], pts[-1]]:
+        coords = (vex.x(), vex.y())
+        if coords in graph.keys():
+            graph[coords].append(geom)
+        else:
+            graph[coords] = [geom]
+            grouped[coords] = False
 
 
 # Create INTESECTIONS layer
@@ -245,25 +254,17 @@ def compute_dist(o, d):
     return dx**2 + dy**2
     
 # Iterate intersections
-inters = list(new_graph.keys())
+inters = list(graph.keys())
 num = len(inters)
 groups, gnum = [], 0
-thres = 0.001
-fet = QgsFeature()
-fet.setFields(fields)
+thres = 0.01
 for i in range(num):
     orig = inters[i]
     if grouped[orig]: continue
     
-    # Add as layer feature
-    point = QgsPointXY(orig[0], orig[1])
-    fet.setGeometry(QgsGeometry.fromPointXY(point))
-    fet.setAttribute('group', gnum)
-    provider.addFeatures([fet])
-    
-    group = [orig]
-    grouped[orig] = True
-    for j in range(i+1, num):
+    # Form group by distance
+    group = []
+    for j in range(i, num):
         dest = inters[j]
         if grouped[dest]: continue
         
@@ -273,40 +274,88 @@ for i in range(num):
             grouped[dest] = True
             
             # Add as layer feature
+            fet = QgsFeature()
+            fet.setFields(fields)
             point = QgsPointXY(dest[0], dest[1])
             fet.setGeometry(QgsGeometry.fromPointXY(point))
             fet.setAttribute('group', gnum)
             provider.addFeatures([fet])
-            
+    
     groups.append(group)
     gnum += 1
     
 # Publish INTESECTIONS layer
 interLayer.commitChanges()
 proj.addMapLayer(interLayer)
+
+
+def compute_centroid(group):
+    if len(group) >= 2:
+        n = len(group)
+        x = sum([pt[0] for pt in group])
+        y = sum([pt[1] for pt in group])
+        return x / n, y / n
+    else:
+        return group[0]
+
+# Process groups
+centroid_graph = {}
+for group in groups:
+    # Compute centroid
+    centroid = compute_centroid(group)
     
-# Create grid
-# to layer extend
-#ext = segmentLayer.extent()
-#res = 0.01
-#height = int(ext.height() / res) + 1
-#idth = int(ext.width() / res) + 1
-#xmin, ymin = ext.xMinimum(), ext.yMinimum()
+    # Collect all related edges
+    edges = set()
+    for inter in group:
+        inter_edges = graph[inter]
+        edges.update(inter_edges)
+        #print(new_graph[inter])
+        #for edge in new_graph[inter]:
+            #points = []
+            #for point in edge.get():
+                #points.append((point.x(), point.y()))
+            #edges.add(tuple(points))
+    
+    # Add to graph
+    centroid_graph[centroid] = edges
 
-#gridLayer = QgsVectorLayer("Point", "grid", "memory")
-#provider = gridLayer.dataProvider()
-#gridLayer.startEditing()
-#for w in range(width):
-    #for h in range(height):
-        #fet = QgsFeature()
-        #point = QgsPointXY(xmin + w*res, ymin + h*res)
-        #fet.setGeometry(QgsGeometry.fromPointXY(point))
-        #provider.addFeatures([fet])
-#gridLayer.commitChanges()
-#proj.addMapLayer(gridLayer)
+# Form centroid connections
+connections = {}
+centroids = list(centroid_graph.keys())
+num = len(centroids)
+for i in range(num):
+    curr_centroid = centroids[i]
+    curr_edges = centroid_graph[curr_centroid]
+    connections[curr_centroid] = []
+    
+    for j in range(i+1, num):
+        other_centroid = centroids[j]
+        edges = centroid_graph[other_centroid]
+        common = edges.intersection(curr_edges)
+        if len(common) > 0:
+            connections[curr_centroid].append(other_centroid)
+            
+            
+# Create SIMPLIFIED layer
+simplifiedLayer = QgsVectorLayer("LineString", "simplified", "memory")
+provider = simplifiedLayer.dataProvider()
+simplifiedLayer.startEditing()
 
+for orig, dests in connections.items():
+    for dest in dests:
+        # Define geometry
+        o_p = QgsPoint(orig[0], orig[1])
+        e_p = QgsPoint(dest[0], dest[1])
+        pts = [o_p, e_p]
         
+        # Add as layer feature
+        fet = QgsFeature()
+        fet_geom = QgsGeometry.fromPolyline(pts)
+        fet.setGeometry(fet_geom)
+        provider.addFeatures([fet])
 
-
-
-
+# Publish SIMPLIFIED layer
+simplifiedLayer.commitChanges()
+proj.addMapLayer(simplifiedLayer)
+        
+    
