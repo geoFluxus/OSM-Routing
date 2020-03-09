@@ -20,7 +20,7 @@ root.filename = filedialog.askopenfilename(initialdir=desktop,
 # File to be processed
 filename = root.filename
 
-# Open :file
+# Open file
 try:
     fil = open(filename, 'r')
 except FileNotFoundError:
@@ -31,37 +31,64 @@ except FileNotFoundError:
 for i in range(3):
     line = fil.readline()
 
-# Read node
-def read_node(line):
-    tags = line.replace('<node ', '') \
-               .replace('>', '') \
-               .replace('/', '') \
-               .split()
-
-    # id / lat /lon
-    id = tags[0].strip('id=').strip('"')
-    lat = float(tags[1].strip('lat=').strip('"'))
-    lon = float(tags[2].strip('lon=').strip('"'))
-    nodes[id] = (lat, lon)
 
 # Read file
 nodes = {}
+ways = {}
+
+print('Parsing file...')
 while line:
     line = fil.readline()
 
     # process nodes
     if '<node' in line:
-        read_node(line)
+        # recover tags
+        tags = line.replace('<node ', '') \
+            .replace('>', '') \
+            .replace('/', '') \
+            .split()
+
+        # id / lat /lon
+        id = tags[0].strip('id=').strip('"')
+        lat = float(tags[1].strip('lat=').strip('"'))
+        lon = float(tags[2].strip('lon=').strip('"'))
+        nodes[id] = (lat, lon)
+
+    # process ways
+    if '<way' in line:
+        # read id
+        id = line.replace('<way id="', '')\
+                 .replace('">', '')\
+                 .strip('\t')\
+                 .strip('\n')
+        # initialize way
+        ways[id] = []
+        # recover all node refs
+        while '</way>' not in line:
+            # read node ref
+            line = fil.readline()
+            if '<nd' not in line: break
+            ref = line.replace('<nd ref="', '')\
+                      .replace('"/>', '')\
+                      .strip('\t')\
+                      .strip('\n')
+            # append to way
+            ways[id].append(ref)
+print('Parsing complete...')
 
 # CLOSE file
 fil.close()
 
 # # Write node file
-# filename = desktop + '/nodes.csv'
+# filename = desktop + '/ways.csv'
 # fil = open(filename, 'w')
 # fil.write('id;wkt\n')
-# for id, coords in nodes.items():
-#     lat, lon = coords
-#     line = '{};POINT({} {})\n'.format(id, lon, lat)
+# for id, refs in ways.items():
+#     geom = 'LINESTRING('
+#     for ref in refs:
+#         lon, lat = nodes[ref]
+#         geom += '{} {},'.format(lat, lon)
+#     geom = geom[:-1] + ')'
+#     line = '{};{}\n'.format(id, geom)
 #     fil.write(line)
 # fil.close()
