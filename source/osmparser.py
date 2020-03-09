@@ -7,19 +7,20 @@ class OSMparser():
     def __init__(self):
         self.nodes = {}
         self.ways = {}
+        self.path = ''
 
     def readfile(self):
         # Check OS
         if os.name == 'nt':
-            desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+            self.path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
         elif os.name == 'posix':
-            desktop = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
+            self.path = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
         else:
             raise ValueError('OS not supported...')
 
         # Menu to open file
         root = Tk()
-        root.filename = filedialog.askopenfilename(initialdir=desktop,
+        root.filename = filedialog.askopenfilename(initialdir=self.path,
                                                    title="Select file",
                                                    filetypes=(("OSM", "*.osm"),
                                                               ("all files", "*.*")))
