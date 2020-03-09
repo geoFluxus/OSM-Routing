@@ -1,0 +1,50 @@
+WITH 
+
+vertices AS (
+SELECT source as vid, 
+       ST_SetSRID(ST_MakePoint(lon, lat), 4326) as geom
+FROM ways
+LEFT JOIN ways_vertices_pgr
+ON ways.source = ways_vertices_pgr.id),
+
+route AS (
+	SELECT ways.the_geom as lines FROM pgr_dijkstra('
+		SELECT gid AS id,
+			   source,
+			   target,
+			   cost_s AS cost,
+			   reverse_cost_s as reverse_cost
+		FROM ways',
+		(SELECT vid FROM vertices
+		 ORDER BY ST_Distance(
+		   geom,
+		   ST_SetSRID(ST_MakePoint(5.2427, 53.3676), 4326),
+		   true
+		 ) ASC LIMIT 1), 
+		(SELECT vid FROM vertices
+		 ORDER BY ST_Distance(
+		   geom,
+		   ST_SetSRID(ST_MakePoint(5.85625, 53.19575), 4326),
+		   true
+		 ) ASC LIMIT 1),
+		 FALSE
+	) AS dijkstra
+	LEFT JOIN ways
+	ON (dijkstra.edge = ways.gid)
+	ORDER BY seq
+)
+
+SELECT ST_LineMerge(ST_Union(lines)) as geom 
+FROM route
+
+
+
+?? Split linestring to segments ??
+SELECT ST_MakeLine(sp,ep) FROM
+(
+	SELECT st_pointn(lines, generate_series(1, st_npoints(lines)-1)) as sp,
+	       st_pointn(lines, generate_series(2, st_npoints(lines)  )) as ep
+	FROM route
+) AS segments;
+?? Split linestring to segments ??
+
