@@ -8,7 +8,7 @@ class Simplify():
         self.segments = [] # segment storage
 
     # recover original topology
-    def build_graph(self):
+    def build_init_graph(self):
         # traverse all linestrings
         for points in self.ways.values():
             # split into segments
@@ -53,6 +53,10 @@ class Simplify():
 
     # record intersections
     def record_intersections(self):
+        # build initial graph
+        self.build_init_graph()
+
+        # traverse graph
         for vex, edges in self.graph.items():
             if self.is_intersection(vex, edges):
                 # mark as intersection
@@ -123,41 +127,11 @@ class Simplify():
                             break
 
                 self.segments.append(pts)
-#
-#
-# # Stringify menu
-# def export_stringify():
-#     filename = path + '/stringify.csv'
-#     fil = open(filename, 'w')
-#     fil.write('wkt\n')
-#     for string in stringify:
-#         line = 'LINESTRING('
-#         for point in string:
-#             lat, lon = point
-#             line += '{} {},'.format(lon, lat)
-#         line = line[:-1] + ')\n'
-#         fil.write(line)
-#     fil.close()
-#
-# root = tk.Tk()
-# root.withdraw()
-# # Check to export stringify
-# msgbox = tk.messagebox.askquestion('Export file',
-#                                    'Want to export stringified network?',
-#                                    icon='warning')
-# if msgbox == 'yes':
-#     tk.messagebox.showinfo('Message',
-#                            'File exported in desktop...')
-#     export_stringify()
-# # Check to continue processing
-# msgbox = tk.messagebox.askquestion('WARNING!',
-#                                    'Continue processing?',
-#                                    icon='warning')
-# if msgbox == 'no':
-#     root.destroy()
-#     exit()
-#
-#
+
+
+    # recover topology of stringified network
+
+
 # print('[STEP 4]')
 # print('Build new graph')
 # # build new graph

@@ -1,43 +1,16 @@
-from tkinter import filedialog
-from tkinter import *
-import os
-
-
 class OSMparser():
-    def __init__(self):
+    def __init__(self, filename):
+        self.filename = filename
         self.nodes = {}
         self.ways = {}
-        self.path = ''
 
     def readfile(self):
-        # Check OS
-        if os.name == 'nt':
-            self.path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
-        elif os.name == 'posix':
-            self.path = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
-        else:
-            raise ValueError('OS not supported...')
-
-        # Menu to open file
-        root = Tk()
-        root.withdraw()
-        root.filename = filedialog.askopenfilename(initialdir=self.path,
-                                                   title="Select file",
-                                                   filetypes=(("OSM", "*.osm"),
-                                                              ("all files", "*.*")))
-        root.destroy()
-
-        # File to be processed
-        filename = root.filename
-
         # Open file
         try:
-            fil = open(filename, 'r')
+            fil = open(self.filename, 'r')
         except FileNotFoundError:
             raise FileNotFoundError('File not found...')
 
-        print('[PROCESS] Parse OSM')
-        print('Parsing file...')
         line = fil.readline()
         while line:
             line = fil.readline()
@@ -76,7 +49,6 @@ class OSMparser():
                         .strip('\n')
                     # append to way
                     self.ways[id].append(ref)
-        print('Parsing complete...\n')
 
         # CLOSE file
         fil.close()
