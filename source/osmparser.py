@@ -36,12 +36,9 @@ class OSMparser():
         except FileNotFoundError:
             raise FileNotFoundError('File not found...')
 
-        # Skip the first lines
-        for i in range(3):
-            line = fil.readline()
-
         print('[PROCESS] Parse OSM')
         print('Parsing file...')
+        line = fil.readline()
         while line:
             line = fil.readline()
 

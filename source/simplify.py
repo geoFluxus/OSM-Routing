@@ -2,25 +2,26 @@ class Simplify():
     def __init__(self, network):
         self.ways = network['ways']
         self.nodes = network['nodes']
-        self.graph = {}
+        self.graph = {} # network graph
+        self.processed = {} # keep track of processed edges
+        self.intersections = {} # intersection inventory
+        self.segments = [] # segment storage
 
     # recover original topology
     def build_graph(self):
-        # keep track of processed edges
-        processed = {}
         # traverse all linestrings
         for points in self.ways.values():
             # split into segments
             n = len(points) - 1
-            segments = []
+            self.segments = []
             for i in range(n):
                 start, end = self.nodes[points[i]], self.nodes[points[i + 1]]
                 segment = (start, end)
-                segments.append(segment)
+                self.segments.append(segment)
 
             # process segments
-            for segment in segments:
-                processed[segment] = False  # mark edge as not processed
+            for segment in self.segments:
+                self.processed[segment] = False  # mark edge as not processed
                 for vex in segment:
                     if vex not in self.graph.keys():
                         self.graph[vex] = [segment]
@@ -52,76 +53,76 @@ class Simplify():
 
     # record intersections
     def record_intersections(self):
-        inters = {}
         for vex, edges in self.graph.items():
             if self.is_intersection(vex, edges):
                 # mark as intersection
-                inters[vex] = True
+                self.intersections[vex] = True
             else:
-                inters[vex] = False
-        return inters
+                self.intersections[vex] = False
 
-# # traverse intersections
-# stringify = []
-# for inter, is_inter in inters.items():
-#     # not intersection, skip
-#     if not is_inter: continue
-#
-#     # traverse all edges of the intersection!
-#     edges = graph[inter]
-#     for edge in edges:
-#         # edge processed, skip
-#         if processed[edge]: continue
-#
-#         # start search
-#         STOP = False
-#
-#         # start point sequence with intersection
-#         pts = [inter]
-#
-#         # jump from edge to edge
-#         # till reaching another intersection
-#         curr_pos = inter
-#         curr_edge = edge
-#         while not STOP:
-#             # get edge geometry
-#             geom = curr_edge
-#
-#             # check start point edge
-#             # if different from intersection, reverse edge
-#             # current intersection should be the starting point!
-#             start = geom[0]
-#             if start != curr_pos:
-#                 geom = geom[::-1]
-#                 start = geom[0]
-#                 if start != curr_pos:
-#                     break
-#
-#             # traverse edge
-#             for pt in geom[1:]:  # the intersection has been added!
-#                 # collect point
-#                 pts.append(pt)
-#
-#                 # if intersection == STOP!
-#                 curr_pos = pt
-#                 if inters[curr_pos]:
-#                     STOP = True
-#                     break
-#
-#             # mark edge as processed
-#             processed[curr_edge] = True
-#
-#             # jump to next edge
-#             # with end point of current edge
-#             adjacent = graph[curr_pos]
-#             for adj in adjacent:
-#                 if not(processed[adj]):
-#                     curr_edge = adj
-#                     break
-#
-#         stringify.append(pts)
-#
-# print('Stringify complete...\n')
+    # stringify network
+    def stringify(self):
+        # clear stored segments
+        self.segments = []
+
+        # traverse intersection inventory
+        for inter, is_inter in self.intersections.items():
+            # not intersection, skip
+            if not is_inter: continue
+
+            # traverse all edges of the intersection!
+            edges = self.graph[inter]
+            for edge in edges:
+                # edge processed, skip
+                if self.processed[edge]: continue
+
+                # start search
+                STOP = False
+
+                # start point sequence with intersection
+                pts = [inter]
+
+                # jump from edge to edge
+                # till reaching another intersection
+                curr_pos = inter
+                curr_edge = edge
+                while not STOP:
+                    # get edge geometry
+                    geom = curr_edge
+
+                    # check start point edge
+                    # if different from intersection, reverse edge
+                    # current intersection should be the starting point!
+                    start = geom[0]
+                    if start != curr_pos:
+                        geom = geom[::-1]
+                        start = geom[0]
+                        if start != curr_pos:
+                            break
+
+                    # traverse edge
+                    for pt in geom[1:]:  # the intersection has been added!
+                        # collect point
+                        pts.append(pt)
+
+                        # if intersection == STOP!
+                        curr_pos = pt
+                        if self.intersections[curr_pos]:
+                            STOP = True
+                            break
+
+                    # mark edge as processed
+                    self.processed[curr_edge] = True
+
+                    # jump to next edge
+                    # with end point of current edge
+                    adjacent = self.graph[curr_pos]
+                    for adj in adjacent:
+                        if not(self.processed[adj]):
+                            curr_edge = adj
+                            break
+
+                self.segments.append(pts)
 #
 #
 # # Stringify menu

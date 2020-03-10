@@ -10,8 +10,22 @@ def export_points(points, name):
     fil.write('wkt\n')
     for point in points:
         lat, lon = point
-        line = 'POINT({} {})\n'.format(lon, lat)
-        fil.write(line)
+        row = 'POINT({} {})\n'.format(lon, lat)
+        fil.write(row)
+    fil.close()
+
+# export line layer (.csv)
+def export_lines(lines, name):
+    filename = path + '/' + name + '.csv'
+    fil = open(filename, 'w')
+    fil.write('wkt\n')
+    for line in lines:
+        row = 'LINESTRING('
+        for point in line:
+            lat, lon = point
+            row += '{} {},'.format(lon, lat)
+        row = row[:-1] + ')\n'
+        fil.write(row)
     fil.close()
 
 # read osm file
@@ -39,12 +53,16 @@ print('Network graph complete...\n')
 # record intersections
 print('[STEP 2]')
 print('Identify intersections...')
-intersections = simplify.record_intersections()
+simplify.record_intersections()
+intersections = simplify.intersections
 print('Intersections recorded...\n')
 
-points = []
-for point, is_intersection in intersections.items():
-    if is_intersection: points.append(point)
-export_points(points, 'intersections')
-# print('[STEP 3]')
-# print('Stringify...')
+# stringify
+print('[STEP 3]')
+print('Stringify...')
+simplify.stringify()
+segments = simplify.segments
+export_lines(segments, 'stringify')
+print('Stringify complete...\n')
+
+
