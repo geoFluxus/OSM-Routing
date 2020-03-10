@@ -76,7 +76,7 @@ class OSMparser():
                         .strip('\n')
                     # append to way
                     self.ways[id].append(ref)
-        print('Parsing complete...')
+        print('Parsing complete...\n')
 
         # CLOSE file
         fil.close()
