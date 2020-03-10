@@ -1,5 +1,5 @@
 class Simplify():
-    def __init__(self, network):
+    def __init__(self, network, resolution=0.01):
         self.ways = network['ways']
         self.nodes = network['nodes']
         self.graph = {} # network graph
@@ -7,6 +7,7 @@ class Simplify():
         self.intersections = {} # intersection inventory
         self.segments = [] # segment storage
         self.grouped = {} # grouped intersection inventory
+        self.resolution = resolution
 
     # recover original topology
     def build_init_graph(self):
@@ -154,31 +155,32 @@ class Simplify():
         dy = d[1] - o[1]
         return dx**2 + dy**2
 
+    # distance clustering
+    def cluster(self):
+        # build new graph
+        self.build_new_graph()
 
+        # iterate intersections
+        self.intersections = {}
+        inters = list(self.graph.keys())
+        num = len(inters)
+        cnum = 0
+        for i in range(num):
+            orig = inters[i]
+            if self.grouped[orig]: continue
 
-#
-# # iterate intersections
-# inters = list(graph.keys())
-# num = len(inters)
-# groups, gnum = [], 0
-# thres = 0.01
-# for i in range(num):
-#     orig = inters[i]
-#     if grouped[orig]: continue
-#
-#     # form group by distance
-#     group = []
-#     for j in range(i, num):
-#         dest = inters[j]
-#         if grouped[dest]: continue
-#
-#         dist = compute_dist(orig, dest)
-#         if dist <= thres ** 2:
-#             group.append(dest)
-#             grouped[dest] = True
-#
-#     groups.append(group)
-#     gnum += 1
+            # form cluster by distance
+            for j in range(i, num):
+                dest = inters[j]
+                if self.grouped[dest]: continue
+
+                dist = self.compute_dist(orig, dest)
+                if dist <= self.resolution ** 2:
+                    self.intersections[dest] = cnum
+                    self.grouped[dest] = True
+
+            # proceed to next cluster
+            cnum += 1
 
 #
 #

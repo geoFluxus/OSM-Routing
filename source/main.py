@@ -37,7 +37,7 @@ network['nodes'] = parser.nodes
 
 # initialize simplification
 print('[PROCESS] Simplification')
-simplify = Simplify(network)
+simplify = Simplify(network, 0.001)
 
 # record intersections
 print('[STEP 1]')
@@ -56,7 +56,7 @@ if msgbox == 'yes':
     points = []
     for point, is_intersection in intersections.items():
         if is_intersection: points.append(point)
-    export_points(points, path, 'intersections')
+    export_points(path, 'intersections', points)
 
 
 # stringify
@@ -72,12 +72,19 @@ msgbox = messagebox.askquestion('Export file',
 if msgbox == 'yes':
     messagebox.showinfo('Message',
                         'File exported in desktop...')
-    export_lines(simplify.segments, path, 'stringify')
+    export_lines(path, 'stringify', simplify.segments)
 
 
 # clustering
 print('[STEP 3]')
 print('Cluster intersections...')
+simplify.cluster()
+intersections = simplify.intersections
+points, clusters = [], []
+for point, cluster in intersections.items():
+    points.append(point)
+    clusters.append(cluster)
+export_points(path, 'clusters', points, clusters)
 print('Clustering complete...\n')
 
 
