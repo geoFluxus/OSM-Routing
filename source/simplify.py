@@ -1,12 +1,13 @@
 class Simplify():
-    def __init__(self, network, resolution=0.01):
+    def __init__(self, network={}, resolution=0.01):
         self.ways = network['ways']
         self.nodes = network['nodes']
         self.graph = {} # network graph
         self.processed = {} # processed edge inventory
         self.intersections = {} # intersection inventory
         self.segments = [] # segment storage
-        self.grouped = {} # grouped intersection inventory
+        self.clustered = {} # clustered intersection inventory
+        self.clusters = [] # intersection clusters
         self.resolution = resolution
 
     # recover original topology
@@ -135,7 +136,6 @@ class Simplify():
     def build_new_graph(self):
         # build new graph
         self.graph = {}
-        self.grouped = {} # mark as grouped
 
         # traverse network segments
         for segment in self.segments:
@@ -146,7 +146,7 @@ class Simplify():
                     self.graph[vex].append(segment)
                 else:
                     self.graph[vex] = [segment]
-                    self.grouped[vex] = False
+                    self.clustered[vex] = False
 
     # compute point distance
     @staticmethod
@@ -161,56 +161,54 @@ class Simplify():
         self.build_new_graph()
 
         # iterate intersections
-        self.intersections = {}
         inters = list(self.graph.keys())
         num = len(inters)
-        cnum = 0
         for i in range(num):
             orig = inters[i]
-            if self.grouped[orig]: continue
+            if self.clustered[orig]: continue
 
             # form cluster by distance
+            cluster = []
             for j in range(i, num):
                 dest = inters[j]
-                if self.grouped[dest]: continue
+                if self.clustered[dest]: continue
 
                 dist = self.compute_dist(orig, dest)
                 if dist <= self.resolution ** 2:
-                    self.intersections[dest] = cnum
-                    self.grouped[dest] = True
+                    cluster.append(dest)
+                    self.clustered[dest] = True
 
-            # proceed to next cluster
-            cnum += 1
+            self.clusters.append(cluster)
 
+    # compute cluster centroid
+    @staticmethod
+    def compute_centroid(cluster):
+        if len(cluster) >= 2:
+            n = len(cluster)
+            x = sum([pt[0] for pt in cluster])
+            y = sum([pt[1] for pt in cluster])
+            return x / n, y / n
+        else:
+            return cluster[0]
+
+#     # rebuild network after clustering
+#     def rebuild_network(self):
+#         # process groups
+#         centroid_graph = {}
+#         for group in groups:
+#             # compute centroid
+#             centroid = compute_centroid(group)
 #
+#             # collect all related edges
+#             edges = set()
+#             for inter in group:
+#                 inter_edges = graph[inter]
+#                 inter_edges = [tuple(edge) for edge in inter_edges]
+#                 edges.update(inter_edges)
 #
-# print('[STEP 6]')
-# print('Rebuild network...')
-# def compute_centroid(group):
-#     if len(group) >= 2:
-#         n = len(group)
-#         x = sum([pt[0] for pt in group])
-#         y = sum([pt[1] for pt in group])
-#         return x / n, y / n
-#     else:
-#         return group[0]
-#
-# # process groups
-# centroid_graph = {}
-# for group in groups:
-#     # compute centroid
-#     centroid = compute_centroid(group)
-#
-#     # collect all related edges
-#     edges = set()
-#     for inter in group:
-#         inter_edges = graph[inter]
-#         inter_edges = [tuple(edge) for edge in inter_edges]
-#         edges.update(inter_edges)
-#
-#     # add to graph
-#     centroid_graph[centroid] = edges
-#
+#             # add to graph
+#             centroid_graph[centroid] = edges
+# #
 # # form centroid connections
 # connections = {}
 # centroids = list(centroid_graph.keys())
@@ -235,4 +233,3 @@ class Simplify():
 #         stringify.append(string)
 #
 # export_stringify()
-# print('Network complete...\n')
