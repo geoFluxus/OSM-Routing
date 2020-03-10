@@ -20,10 +20,12 @@ class OSMparser():
 
         # Menu to open file
         root = Tk()
+        root.withdraw()
         root.filename = filedialog.askopenfilename(initialdir=self.path,
                                                    title="Select file",
                                                    filetypes=(("OSM", "*.osm"),
                                                               ("all files", "*.*")))
+        root.destroy()
 
         # File to be processed
         filename = root.filename
@@ -38,6 +40,7 @@ class OSMparser():
         for i in range(3):
             line = fil.readline()
 
+        print('[PROCESS] Parse OSM')
         print('Parsing file...')
         while line:
             line = fil.readline()
