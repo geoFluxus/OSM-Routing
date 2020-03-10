@@ -3,9 +3,10 @@ class Simplify():
         self.ways = network['ways']
         self.nodes = network['nodes']
         self.graph = {} # network graph
-        self.processed = {} # keep track of processed edges
+        self.processed = {} # processed edge inventory
         self.intersections = {} # intersection inventory
         self.segments = [] # segment storage
+        self.grouped = {} # grouped intersection inventory
 
     # recover original topology
     def build_init_graph(self):
@@ -29,7 +30,8 @@ class Simplify():
                         self.graph[vex].append(segment)
 
     # check if graph vertex is intersection
-    def is_intersection(self, vex, edges):
+    @staticmethod
+    def is_intersection(vex, edges):
         # TEST 1
         # check if vertex is an orphan point
         # (part of only one edge)
@@ -128,33 +130,32 @@ class Simplify():
 
                 self.segments.append(pts)
 
-
     # recover topology of stringified network
+    def build_new_graph(self):
+        # build new graph
+        self.graph = {}
+        self.grouped = {} # mark as grouped
+
+        # traverse network segments
+        for segment in self.segments:
+            # each string has as edge points
+            # ALWAYS intersections
+            for vex in [segment[0], segment[-1]]:
+                if vex in self.graph.keys():
+                    self.graph[vex].append(segment)
+                else:
+                    self.graph[vex] = [segment]
+                    self.grouped[vex] = False
+
+    # compute point distance
+    @staticmethod
+    def compute_dist(o, d):
+        dx = d[0] - o[0]
+        dy = d[1] - o[1]
+        return dx**2 + dy**2
 
 
-# print('[STEP 4]')
-# print('Build new graph')
-# # build new graph
-# graph = {}
-# grouped = {} # mark as grouped
-# for string in stringify:
-#     # each string has as edge points
-#     # ALWAYS intersections
-#     for vex in [string[0], string[-1]]:
-#         if vex in graph.keys():
-#             graph[vex].append(string)
-#         else:
-#             graph[vex] = [string]
-#             grouped[vex] = False
-# print('New graph complete...\n')
-#
-#
-# print('[STEP 5]')
-# print('Cluster intersections...')
-# def compute_dist(o, d):
-#     dx = d[0] - o[0]
-#     dy = d[1] - o[1]
-#     return dx**2 + dy**2
+
 #
 # # iterate intersections
 # inters = list(graph.keys())
@@ -178,7 +179,7 @@ class Simplify():
 #
 #     groups.append(group)
 #     gnum += 1
-# print('Clustering complete...\n')
+
 #
 #
 # print('[STEP 6]')

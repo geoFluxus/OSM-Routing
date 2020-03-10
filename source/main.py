@@ -57,12 +57,6 @@ if msgbox == 'yes':
     for point, is_intersection in intersections.items():
         if is_intersection: points.append(point)
     export_points(points, path, 'intersections')
-# check to continue processing
-msgbox = messagebox.askquestion('WARNING',
-                                'Continue processing?',
-                                 icon='warning')
-root.destroy()
-if msgbox == 'no': exit()
 
 
 # stringify
@@ -79,12 +73,11 @@ if msgbox == 'yes':
     messagebox.showinfo('Message',
                         'File exported in desktop...')
     export_lines(simplify.segments, path, 'stringify')
-# check to continue processing
-msgbox = messagebox.askquestion('WARNING',
-                                'Continue processing?',
-                                 icon='warning')
-if msgbox == 'no':
-    root.destroy()
-    exit()
+
+
+# clustering
+print('[STEP 3]')
+print('Cluster intersections...')
+print('Clustering complete...\n')
 
 
