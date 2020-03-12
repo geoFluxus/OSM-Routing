@@ -7,14 +7,19 @@ class OSMparser():
     def readfile(self):
         # Open file
         try:
+            with open(self.filename) as f:
+                rows = sum(1 for _ in f)
             fil = open(self.filename, 'r')
         except FileNotFoundError:
             raise FileNotFoundError('File not found...')
 
         line = fil.readline()
+        row = 1
         while line:
-            line = fil.readline()
-
+            # progress
+            if row % 100000 == 0: # progress bar slow...
+                progress = row / rows * 100
+                print('Progress: {:.1f}%'.format(progress), end="\r", flush=True)
             # process nodes
             if '<node' in line:
                 # recover tags
@@ -41,6 +46,7 @@ class OSMparser():
                 # recover all node refs
                 while '</way>' not in line:
                     # read node ref
+                    row += 1
                     line = fil.readline()
                     if '<nd' not in line: break
                     ref = line.replace('<nd ref="', '') \
@@ -49,6 +55,10 @@ class OSMparser():
                         .strip('\n')
                     # append to way
                     self.ways[id].append(ref)
+
+            # proceed
+            row += 1
+            line = fil.readline()
 
         # CLOSE file
         fil.close()

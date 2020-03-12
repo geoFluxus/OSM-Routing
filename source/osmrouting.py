@@ -8,6 +8,9 @@ from tkinter import (messagebox,
 import os
 
 
+############################################################################
+# START MENU
+############################################################################
 # check OS
 if os.name == 'nt':
     path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
@@ -23,29 +26,34 @@ root.filename = filedialog.askopenfilename(initialdir=path,
                                            title="Select file",
                                            filetypes=(("OSM", "*.osm"),
                                                       ("all files", "*.*")))
-root.destroy()
+############################################################################
+
+
+############################################################################
+# FILE PARSER #
+############################################################################
 filename = root.filename
 
 # parse file
 parser = OSMparser(filename)
-print('[PROCESS] Parse OSM')
 print('Parsing file...')
 parser.readfile()
-print('Parsing complete...')
-print('[END PROCESS]\n')
+print('Parsing complete...\n')
 
 # recover network
 network = {}
 network['ways'] = parser.ways
 network['nodes'] = parser.nodes
+############################################################################
 
+
+############################################################################
+# SIMPLIFICATION #
+############################################################################
 # initialize simplification
-print('[PROCESS] Simplify Network')
 simplify = Simplify(network)
 
 # check (stringify OR simplify?)
-root = Tk()
-root.withdraw()
 msgbox = messagebox.askquestion('WARNING!',
                                 'Just STRINGIFY?')
 
@@ -57,8 +65,7 @@ def export(name):
         messagebox.showinfo('Message',
                             'File exported in desktop...')
         export_lines(path, name, simplify.segments)
-    print('Simplification complete...')
-    print('[END PROCESS]\n')
+    print('Simplification complete...\n')
 
 # simplification
 print('Simplification started...')
@@ -68,5 +75,6 @@ if msgbox == 'yes':
 else:
     simplify.simplify()
     export('simplified')
+############################################################################
 
 
