@@ -73,6 +73,9 @@ class Simplify():
         # clear stored segments
         self.segments = []
 
+        # record intersections
+        self.record_intersections()
+
         # traverse intersection inventory
         for inter, is_inter in self.intersections.items():
             # not intersection, skip
@@ -191,45 +194,39 @@ class Simplify():
         else:
             return cluster[0]
 
-#     # rebuild network after clustering
-#     def rebuild_network(self):
-#         # process groups
-#         centroid_graph = {}
-#         for group in groups:
-#             # compute centroid
-#             centroid = compute_centroid(group)
-#
-#             # collect all related edges
-#             edges = set()
-#             for inter in group:
-#                 inter_edges = graph[inter]
-#                 inter_edges = [tuple(edge) for edge in inter_edges]
-#                 edges.update(inter_edges)
-#
-#             # add to graph
-#             centroid_graph[centroid] = edges
-# #
-# # form centroid connections
-# connections = {}
-# centroids = list(centroid_graph.keys())
-# num = len(centroids)
-# for i in range(num):
-#     curr_centroid = centroids[i]
-#     curr_edges = centroid_graph[curr_centroid]
-#     connections[curr_centroid] = []
-#
-#     for j in range(i+1, num):
-#         other_centroid = centroids[j]
-#         edges = centroid_graph[other_centroid]
-#         common = edges.intersection(curr_edges)
-#         if len(common) > 0:
-#             connections[curr_centroid].append(other_centroid)
-#
-# stringify = []
-# for orig, dests in connections.items():
-#     for dest in dests:
-#         # define geometry
-#         string = [orig, dest]
-#         stringify.append(string)
-#
-# export_stringify()
+    # simplify network with intersection clustering
+    def simplify(self):
+        # clustering
+        self.cluster()
+
+        # process groups
+        centroid_graph = {}
+        for cluster in self.clusters:
+            # compute centroid
+            centroid = self.compute_centroid(cluster)
+
+            # collect all related edges
+            edges = set()
+            for inter in cluster:
+                inter_edges = self.graph[inter]
+                inter_edges = [tuple(edge) for edge in inter_edges]
+                edges.update(inter_edges)
+
+            # add to graph
+            centroid_graph[centroid] = edges
+
+        # form new segments
+        self.segments = []
+        centroids = list(centroid_graph.keys())
+        num = len(centroids)
+        for i in range(num):
+            curr_centroid = centroids[i]
+            curr_edges = centroid_graph[curr_centroid]
+
+            for j in range(i+1, num):
+                other_centroid = centroids[j]
+                edges = centroid_graph[other_centroid]
+                common = edges.intersection(curr_edges)
+                if len(common) > 0:
+                    segment = (curr_centroid, other_centroid)
+                    self.segments.append(segment)
