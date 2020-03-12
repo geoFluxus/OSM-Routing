@@ -1,6 +1,7 @@
 from osmparser import OSMparser
 from simplify import Simplify
-from utils import export_lines, export_points
+from utils import (export_lines,
+                   export_points)
 from tkinter import (messagebox,
                      filedialog,
                      Tk)
@@ -39,7 +40,7 @@ network['ways'] = parser.ways
 network['nodes'] = parser.nodes
 
 # initialize simplification
-print('[PROCESS] Simplification')
+print('[PROCESS] Simplify Network')
 simplify = Simplify(network)
 
 # check (stringify OR simplify?)
@@ -48,31 +49,24 @@ root.withdraw()
 msgbox = messagebox.askquestion('WARNING!',
                                 'Just STRINGIFY?')
 
+# export file
+def export(name):
+    msgbox = messagebox.askquestion('Export file',
+                                    'Want to export {} network?'.format(name))
+    if msgbox == 'yes':
+        messagebox.showinfo('Message',
+                            'File exported in desktop...')
+        export_lines(path, name, simplify.segments)
+    print('Simplification complete...')
+    print('[END PROCESS]\n')
+
 # simplification
 print('Simplification started...')
 simplify.stringify() # need it in any case...
 if msgbox == 'yes':
-    # check to export stringify
-    msgbox = messagebox.askquestion('Export file',
-                                    'Want to export stringified network?')
-    if msgbox == 'yes':
-        messagebox.showinfo('Message',
-                            'File exported in desktop...')
-        export_lines(path, 'stringified', simplify.segments)
-    print('Simplification complete...')
-    print('[END PROCESS]\n')
-    exit()
+    export('stringified')
 else:
-    # simplify
     simplify.simplify()
-    # check to export simplify
-    msgbox = messagebox.askquestion('Export file',
-                                    'Want to export simplified network?')
-    if msgbox == 'yes':
-        messagebox.showinfo('Message',
-                            'File exported in desktop...')
-        export_lines(path, 'stringified', simplify.segments)
-    print('Simplification complete...')
-    print('[END PROCESS]\n')
+    export('simplified')
 
 
