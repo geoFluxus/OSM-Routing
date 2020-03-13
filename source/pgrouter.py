@@ -30,7 +30,9 @@ class PgRouter():
             self.cursor = self.connection.cursor()
             print('Connection established...')
         except (Exception, pg.Error) as error:
-            print('Connection failed...', error)
+            print('Connection failed...')
+            print(error)
+            exit()
 
     # close connection
     def close_connection(self):
@@ -38,12 +40,15 @@ class PgRouter():
         self.connection.close()
         print('Connection closed...')
 
-    # fetch data
-    def fetch(self, query):
+    # execute query
+    def execute(self, query):
         try:
             self.cursor.execute(query)
-            result = self.cursor.fetchall()
-            return result
+            try:
+                result = self.cursor.fetchall()
+                return result
+            except:
+                return
         except (Exception, pg.Error) as error:
             print('Error occured...', error)
             self.close_connection()  # KILL CONNECTION!
@@ -52,10 +57,31 @@ class PgRouter():
     # check postGIS
     def check_postgis(self):
         query = 'SELECT PostGIS_version();'
-        self.fetch(query)
+        self.execute(query)
 
     # check pgrouting
     def check_pgrouting(self):
         query = 'SELECT pgr_version();'
-        self.fetch(query)
+        self.execute(query)
+
+    # create tables
+    def create_tables(self):
+        # check if tables exists
+        # assume that everything is stored in public schema...
+        query = """
+                SELECT * FROM INFORMATION_SCHEMA.TABLES
+                WHERE TABLE_NAME = 'ways'
+                """
+        exists = self.execute(query)
+        if not exists:
+            query = """
+                    CREATE TABLE ways (
+                        id SERIAL PRIMARY KEY
+                    )
+                    """
+            self.execute(query)
+            self.connection.commit()
+            print('Create ways...')
+        else:
+            print('Update ways...')
 
