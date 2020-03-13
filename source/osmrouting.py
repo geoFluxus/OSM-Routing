@@ -1,5 +1,6 @@
 from osmparser import OSMparser
 from simplify import Simplify
+from pgrouter import PgRouter
 from utils import (export_lines,
                    export_points)
 from tkinter import (messagebox,
@@ -30,7 +31,7 @@ root.filename = filedialog.askopenfilename(initialdir=path,
 
 
 ############################################################################
-# FILE PARSER #
+# FILE PARSER
 ############################################################################
 filename = root.filename
 
@@ -48,33 +49,57 @@ network['nodes'] = parser.nodes
 
 
 ############################################################################
-# SIMPLIFICATION #
+# SIMPLIFICATION
 ############################################################################
 # initialize simplification
 simplify = Simplify(network)
 
 # check (stringify OR simplify?)
-msgbox = messagebox.askquestion('WARNING!',
-                                'Just STRINGIFY?')
+print('Simplification started...')
+resp = input('Just STRINGIFY? [Y/N] ') or 'n'
+while resp.lower() not in ['y', 'n']:
+    resp = input('Just STRINGIFY? [Y/N] ')
 
 # export file
 def export(name):
-    msgbox = messagebox.askquestion('Export file',
-                                    'Want to export {} network?'.format(name))
-    if msgbox == 'yes':
-        messagebox.showinfo('Message',
-                            'File exported in desktop...')
+    resp = input('Export {} network? [Y/N] '.format(name.upper())) or 'n'
+    while resp.lower() not in ['y', 'n']:
+        resp = input('Export {} network? [Y/N] '.format(name.upper()))
+    if resp == 'y':
+        print('File exported in desktop...')
         export_lines(path, name, simplify.segments)
     print('Simplification complete...\n')
 
 # simplification
-print('Simplification started...')
 simplify.stringify() # need it in any case...
-if msgbox == 'yes':
+if resp == 'y':
     export('stringified')
 else:
     simplify.simplify()
     export('simplified')
+############################################################################
+
+
+############################################################################
+# DATABASE CONNECTION
+############################################################################
+print('Store network to database...')
+
+# request db credentials
+print('Enter database credentials...')
+database = input('DB_NAME: ')
+user = input('DB_USER: ')
+password = input('DB_PASS: ')
+host = input('DB_HOST: ') or 'localhost'
+port = input('DB_PORT: ') or 5432
+
+# connect to database
+pgrouter = PgRouter(database=database,
+                    user=user,
+                    password=password,
+                    host=host,
+                    port=port)
+pgrouter.close_connection()
 ############################################################################
 
 
