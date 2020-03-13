@@ -1,14 +1,15 @@
-# from osmparser import OSMparser
-# from simplify import Simplify
+from osmparser import OSMparser
+from simplify import Simplify
 from pgrouter import PgRouter
-# from utils import (export_lines,
-#                    export_points)
-# from tkinter import (messagebox,
-#                      filedialog,
-#                      Tk)
-# import os
-#
-#
+from utils import (export_lines,
+                   export_points,
+                   ask_input)
+from tkinter import (messagebox,
+                     filedialog,
+                     Tk)
+import os
+
+
 # ############################################################################
 # # START MENU
 # ############################################################################
@@ -33,6 +34,7 @@ from pgrouter import PgRouter
 # ############################################################################
 # # FILE PARSER
 # ############################################################################
+# # retrieve filename
 # filename = root.filename
 #
 # # parse file
@@ -56,15 +58,11 @@ from pgrouter import PgRouter
 #
 # # check (stringify OR simplify?)
 # print('Simplification started...')
-# resp = input('Just STRINGIFY? [Y/N] ') or 'n'
-# while resp.lower() not in ['y', 'n']:
-#     resp = input('Just STRINGIFY? [Y/N] ')
+# resp = ask_input('- just stringify')
 #
 # # export file
 # def export(name):
-#     resp = input('Export {} network? [Y/N] '.format(name.upper())) or 'n'
-#     while resp.lower() not in ['y', 'n']:
-#         resp = input('Export {} network? [Y/N] '.format(name.upper()))
+#     resp = ask_input('- export {} network'.format(name))
 #     if resp == 'y':
 #         print('File exported in desktop...')
 #         export_lines(path, name, simplify.segments)
@@ -72,7 +70,7 @@ from pgrouter import PgRouter
 #
 # # simplification
 # simplify.stringify() # need it in any case...
-# if resp == 'y':
+# if resp:
 #     export('stringified')
 # else:
 #     simplify.simplify()
@@ -83,15 +81,15 @@ from pgrouter import PgRouter
 ############################################################################
 # DATABASE CONNECTION
 ############################################################################
-print('Store network to database...')
+print('Store network to database...\n')
 
 # request db credentials
 print('Enter database credentials...')
-database = input('DB_NAME: ')
-user = input('DB_USER: ')
-password = input('DB_PASS: ')
-host = input('DB_HOST: ') or 'localhost'
-port = input('DB_PORT: ') or 5432
+database = input('- DB_NAME: ')
+user = input('- DB_USER: ')
+password = input('- DB_PASS: ')
+host = input('- DB_HOST: ') or 'localhost'
+port = input('- DB_PORT: ') or 5432
 
 # connect to database
 pgrouter = PgRouter(database=database,
@@ -99,7 +97,7 @@ pgrouter = PgRouter(database=database,
                     password=password,
                     host=host,
                     port=port)
-pgrouter.create_tables()
+pgrouter.create_network()
 pgrouter.close_connection()
 ############################################################################
 

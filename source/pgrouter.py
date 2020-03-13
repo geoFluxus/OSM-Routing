@@ -1,5 +1,5 @@
 import psycopg2 as pg
-
+from utils import ask_input
 
 class PgRouter():
     def __init__(self, database, user, password,
@@ -15,9 +15,9 @@ class PgRouter():
         # connection
         self.connection = None
         self.cursor = None
-        self.open_connection()
-        self.check_postgis()
-        self.check_pgrouting()
+        self.open_connection() # assert connection
+        self.check_postgis() # assert postgis
+        self.check_pgrouting() # assert pgrouting
 
     # connect to db
     def open_connection(self):
@@ -28,7 +28,7 @@ class PgRouter():
                                          host=self.host,
                                          port=self.port)
             self.cursor = self.connection.cursor()
-            print('Connection established...')
+            print('Connection established...\n')
         except (Exception, pg.Error) as error:
             print('Connection failed...')
             print(error)
@@ -64,24 +64,68 @@ class PgRouter():
         query = 'SELECT pgr_version();'
         self.execute(query)
 
-    # create tables
-    def create_tables(self):
-        # check if tables exists
+    # check if tables exists
+    def exists_table(self, name):
         # assume that everything is stored in public schema...
         query = """
                 SELECT * FROM INFORMATION_SCHEMA.TABLES
-                WHERE TABLE_NAME = 'ways'
-                """
-        exists = self.execute(query)
-        if not exists:
+                WHERE TABLE_NAME = '{}'
+                """.format(name)
+        return self.execute(query)
+
+    # create table
+    def create_table(self, table):
+        name, fields = table['name'], table['fields']
+        if not self.exists_table(name):
+            fields = ','.join(fields)
             query = """
-                    CREATE TABLE ways (
-                        id SERIAL PRIMARY KEY
+                    CREATE TABLE {name} (
+                        {fields}
                     )
-                    """
+                    """.format(name=name, fields=fields)
             self.execute(query)
             self.connection.commit()
-            print('Create ways...')
+            return False
         else:
-            print('Update ways...')
+            return True
+
+    # drop table
+    def drop_table(self, name):
+        if self.exists_table(name):
+            print('drop')
+            query = 'DROP TABLE {}'.format(name)
+            self.execute(query)
+            self.connection.commit()
+
+    # flush table
+    def flush_table(self, name):
+        if self.exists_table(name):
+            query = 'DELETE from {}'.format(name)
+            self.execute(query)
+            self.connection.commit()
+
+    # create network tables
+    def create_network(self):
+        # start forming network
+        print('Create pgRouting database...')
+
+        # define tables
+        ways = {'name': 'ways',
+                'fields': ['id SERIAL PRIMARY KEY']}
+        nodes = {'name': 'nodes',
+                 'fields': ['id SERIAL PRIMARY KEY']}
+
+        # clear existent database
+        resp = ask_input('- clear database')
+        if resp:
+            resp = ask_input('ARE YOU SURE')
+            if resp:
+                self.drop_table(ways['name']) # ways
+                self.drop_table(nodes['name']) # nodes
+
+        # create tables
+        # check if only one table exists
+        # if self.create_table(ways) != self.create_table(nodes):
+        #     print('One of the tables already exists, this may cause problems..')
+
 

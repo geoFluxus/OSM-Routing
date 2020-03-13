@@ -22,3 +22,13 @@ def export_lines(path, name, lines):
         row = row[:-1] + ')\n'
         fil.write(row)
     fil.close()
+
+# ask (yes/no) input
+def ask_input(question):
+    resp = ''
+    while resp.lower() not in ['y', 'n']:
+        resp = input('{}? [Y/N] '.format(question.capitalize()))
+    if resp == 'y':
+        return True
+    else:
+        return False
