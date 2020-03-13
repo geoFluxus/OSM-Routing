@@ -16,8 +16,8 @@ class PgRouter():
         self.connection = None
         self.cursor = None
         self.open_connection() # assert connection
-        self.check_postgis() # assert postgis
-        self.check_pgrouting() # assert pgrouting
+        self.create_extension('postgis') # assert postgis
+        self.create_extension('pgrouting') # assert pgrouting
 
     # connect to db
     def open_connection(self):
@@ -54,55 +54,46 @@ class PgRouter():
             self.close_connection()  # KILL CONNECTION!
             exit() # exit program
 
-    # check postGIS
-    def check_postgis(self):
-        query = 'SELECT PostGIS_version();'
+    # create extensions
+    def create_extension(self, extension):
+        query = 'CREATE EXTENSION IF NOT EXISTS {}'.format(extension)
         self.execute(query)
-
-    # check pgrouting
-    def check_pgrouting(self):
-        query = 'SELECT pgr_version();'
-        self.execute(query)
-
-    # check if tables exists
-    def exists_table(self, name):
-        # assume that everything is stored in public schema...
-        query = """
-                SELECT * FROM INFORMATION_SCHEMA.TABLES
-                WHERE TABLE_NAME = '{}'
-                """.format(name)
-        return self.execute(query)
+        self.connection.commit()
 
     # create table
     def create_table(self, table):
-        name, fields = table['name'], table['fields']
-        if not self.exists_table(name):
-            fields = ','.join(fields)
-            query = """
-                    CREATE TABLE {name} (
-                        {fields}
-                    )
-                    """.format(name=name, fields=fields)
-            self.execute(query)
-            self.connection.commit()
-            return False
-        else:
-            return True
+        name = table['name']
+        fields = table['fields']
+        type = table['type']
+
+        # create non-geometric fields
+        fields = ','.join(fields)
+        query = """
+                CREATE TABLE IF NOT EXISTS {name} (
+                    {fields}
+                )
+                """.format(name=name, fields=fields)
+        self.execute(query)
+        self.connection.commit()
+
+        # create geometry column
+        query = """
+                SELECT AddGeometryColumn('public', '{name}', 'the_geom', 4326, '{type}', 2);
+                """.format(name=name, type=type)
+        self.execute(query)
+        self.connection.commit()
 
     # drop table
     def drop_table(self, name):
-        if self.exists_table(name):
-            print('drop')
-            query = 'DROP TABLE {}'.format(name)
-            self.execute(query)
-            self.connection.commit()
+        query = 'DROP TABLE IF EXISTS {}'.format(name)
+        self.execute(query)
+        self.connection.commit()
 
     # flush table
     def flush_table(self, name):
-        if self.exists_table(name):
-            query = 'DELETE from {}'.format(name)
-            self.execute(query)
-            self.connection.commit()
+        query = 'DELETE from {}'.format(name)
+        self.execute(query)
+        self.connection.commit()
 
     # create network tables
     def create_network(self):
@@ -111,21 +102,24 @@ class PgRouter():
 
         # define tables
         ways = {'name': 'ways',
-                'fields': ['id SERIAL PRIMARY KEY']}
+                'fields': ['id SERIAL PRIMARY KEY',
+                           'source INTEGER',
+                           'target INTEGER'],
+                'type': 'LINESTRING'}
         nodes = {'name': 'nodes',
-                 'fields': ['id SERIAL PRIMARY KEY']}
+                 'fields': ['id SERIAL PRIMARY KEY'],
+                 'type': 'POINT'}
 
-        # clear existent database
+        # option to clear existent database
         resp = ask_input('- clear database')
         if resp:
-            resp = ask_input('ARE YOU SURE')
+            resp = ask_input('- are you sure')
             if resp:
                 self.drop_table(ways['name']) # ways
                 self.drop_table(nodes['name']) # nodes
 
         # create tables
-        # check if only one table exists
-        # if self.create_table(ways) != self.create_table(nodes):
-        #     print('One of the tables already exists, this may cause problems..')
+        self.create_table(ways)
+        self.create_table(nodes)
 
 
