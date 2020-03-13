@@ -63,7 +63,7 @@ resp = ask_input('- just stringify')
 # export file
 def export(name):
     resp = ask_input('- export {} network'.format(name))
-    if resp == 'y':
+    if resp:
         print('File exported in desktop...')
         export_lines(path, name, simplify.segments)
     print('Simplification complete...\n')
@@ -81,24 +81,26 @@ else:
 ############################################################################
 # DATABASE CONNECTION
 ############################################################################
-print('Store network to database...\n')
+res = ask_input('save to database')
+if res:
+    print('Storing network to database...\n')
 
-# request db credentials
-print('Enter database credentials...')
-database = input('- DB_NAME: ')
-user = input('- DB_USER: ')
-password = input('- DB_PASS: ')
-host = input('- DB_HOST: ') or 'localhost'
-port = input('- DB_PORT: ') or 5432
+    # request db credentials
+    print('Enter database credentials...')
+    database = input('- DB_NAME: ')
+    user = input('- DB_USER: ')
+    password = input('- DB_PASS: ')
+    host = input('- DB_HOST: ') or 'localhost'
+    port = input('- DB_PORT: ') or 5432
 
-# connect to database
-pgrouter = PgRouter(database=database,
-                    user=user,
-                    password=password,
-                    host=host,
-                    port=port)
-pgrouter.create_network(simplify.segments)
-pgrouter.close_connection()
+    # connect to database
+    pgrouter = PgRouter(database=database,
+                        user=user,
+                        password=password,
+                        host=host,
+                        port=port)
+    pgrouter.create_network(simplify.segments)
+    pgrouter.close_connection()
 ############################################################################
 
 

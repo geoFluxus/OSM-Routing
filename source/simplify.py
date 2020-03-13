@@ -57,8 +57,8 @@ class Simplify():
 
     # record intersections
     def record_intersections(self):
-        # build initial graph
-        self.build_init_graph()
+        # clear intersections
+        self.intersections = {}
 
         # traverse graph
         for vex, edges in self.graph.items():
@@ -69,7 +69,14 @@ class Simplify():
                 self.intersections[vex] = False
 
     # stringify network
-    def stringify(self):
+    def stringify(self, init=True):
+        if init:
+            # build initial graph
+            self.build_init_graph()
+        else:
+            # build new graph
+            self.build_new_graph()
+
         # clear stored segments
         self.segments = []
 
@@ -141,7 +148,11 @@ class Simplify():
         self.graph = {}
 
         # traverse network segments
+        self.processed = {}
         for segment in self.segments:
+            # mark as not processed
+            self.processed[tuple(segment)] = False
+
             # each string has as edge points
             # ALWAYS intersections
             for vex in [segment[0], segment[-1]]:
@@ -230,3 +241,6 @@ class Simplify():
                 if len(common) > 0:
                     segment = (curr_centroid, other_centroid)
                     self.segments.append(segment)
+
+        # stringify once more
+        self.stringify(False)
