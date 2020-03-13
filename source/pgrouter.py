@@ -96,7 +96,7 @@ class PgRouter():
         self.connection.commit()
 
     # create network tables
-    def create_network(self):
+    def create_network(self, segments):
         # start forming network
         print('Create pgRouting database...')
 
@@ -121,5 +121,22 @@ class PgRouter():
         # create tables
         self.create_table(ways)
         self.create_table(nodes)
+
+        # insert segments
+        for segment in segments:
+            # form wkt
+            wkt = 'LINESTRING('
+            for point in segment:
+                lat, lon = point
+                wkt += '{} {},'.format(lon, lat)
+            wkt = wkt[:-1] + ')'
+
+            # insert query
+            query = """
+                    INSERT INTO ways (source, target, the_geom)
+                    VALUES (0, 0, ST_GeomFromText('{}',4326))
+                    """.format(wkt)
+            self.execute(query)
+            self.connection.commit()
 
 
