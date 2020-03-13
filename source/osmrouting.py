@@ -62,19 +62,19 @@ resp = ask_input('- just stringify')
 
 # export file
 def export(name):
-    resp = ask_input('- export {} network'.format(name))
-    if resp:
-        print('File exported in desktop...')
-        export_lines(path, name, simplify.segments)
+    print('Network exported in desktop...')
+    export_lines(path, name, simplify.segments)
     print('Simplification complete...\n')
 
 # simplification
 simplify.stringify() # need it in any case...
+name = os.path.basename(filename)
+print(name)
 if resp:
-    export('stringified')
+    export(name + '-stringified')
 else:
     simplify.simplify()
-    export('simplified')
+    export(name + '-simplified')
 ############################################################################
 
 

@@ -45,6 +45,10 @@ class PgRouter():
         try:
             self.cursor.execute(query)
             self.connection.commit()
+            try:
+                return self.cursor.fetchall()
+            except:
+                return
         except (Exception, pg.Error) as error:
             print('Error occured...', error)
             self.close_connection()  # KILL CONNECTION!
@@ -55,26 +59,31 @@ class PgRouter():
         query = 'CREATE EXTENSION IF NOT EXISTS {}'.format(extension)
         self.execute(query)
 
-    # create table
-    def create_table(self, table):
-        name = table['name']
-        fields = table['fields']
-        type = table['type']
-
+    # create ways
+    def create_ways(self):
         # create non-geometric fields
-        fields = ','.join(fields)
         query = """
-                CREATE TABLE IF NOT EXISTS {name} (
-                    {fields}
+                CREATE TABLE IF NOT EXISTS ways (
+                    id BIGINT PRIMARY KEY,
+                    source INTEGER,
+                    target INTEGER
                 )
-                """.format(name=name, fields=fields)
+                """
         self.execute(query)
 
-        # create geometry column
+        # check geometry column
         query = """
-                SELECT AddGeometryColumn('public', '{name}', 'the_geom', 4326, '{type}', 2);
-                """.format(name=name, type=type)
-        self.execute(query)
+                SELECT column_name
+                FROM information_schema.columns 
+                WHERE table_name='ways' and column_name='the_geom';
+                """
+        if not self.execute(query):
+            # create geometry column
+            query = """
+                    SELECT AddGeometryColumn('public', 'ways', 
+                    'the_geom', 4326, 'LINESTRING', 2);
+                    """
+            self.execute(query)
 
     # drop table
     def drop_table(self, name):
@@ -91,13 +100,6 @@ class PgRouter():
         # start forming network
         print('Create pgRouting database...')
 
-        # define tables
-        ways = {'name': 'ways',
-                'fields': ['id SERIAL PRIMARY KEY',
-                           'source INTEGER',
-                           'target INTEGER'],
-                'type': 'LINESTRING'}
-
         # option to clear existent database
         resp = ask_input('- clear database')
         if resp:
@@ -107,10 +109,17 @@ class PgRouter():
                 self.drop_table('ways_vertices_pgr')
 
         # create ways table
-        self.create_table(ways)
+        self.create_ways()
+
+        # count existent rows
+        query = 'SELECT COUNT(*) FROM WAYS'
+        count = self.execute(query)[0][0]
 
         # insert segments
         for segment in segments:
+            # row number
+            count += 1
+
             # form wkt
             wkt = 'LINESTRING('
             for point in segment:
@@ -120,15 +129,15 @@ class PgRouter():
 
             # insert query
             query = """
-                    INSERT INTO ways (source, target, the_geom)
-                    VALUES (NULL, NULL, ST_GeomFromText('{}',4326))
-                    """.format(wkt)
+                    INSERT INTO ways (id, source, target, the_geom)
+                    VALUES ({}, NULL, NULL, ST_GeomFromText('{}',4326))
+                    """.format(count, wkt)
             self.execute(query)
 
         # create topology
         query = """
                 SELECT
-                pgr_createTopology('ways', 0.0001);
+                pgr_createTopology('ways', 0.01);
                 """
         self.execute(query)
 
