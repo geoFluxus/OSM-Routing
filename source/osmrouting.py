@@ -39,6 +39,7 @@ filename = root.filename
 
 # parse file
 parser = OSMparser(filename)
+print('File: {}'.format(filename))
 print('Parsing file...')
 parser.readfile()
 print('Parsing complete...\n')
@@ -69,7 +70,6 @@ def export(name):
 # simplification
 simplify.stringify() # need it in any case...
 name = os.path.basename(filename)
-print(name)
 if resp:
     export(name + '-stringified')
 else:

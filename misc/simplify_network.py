@@ -1,8 +1,4 @@
-from qgis.core import (QgsProcessing,
-                       QgsProcessingAlgorithm,
-                       QgsProcessingParameterVectorLayer,
-                       QgsProcessingParameterVectorDestination,
-                       QgsMessageLog,
+from qgis.core import (QgsMessageLog,
                        QgsWkbTypes,
                        QgsPoint,
                        QgsPointXY,
@@ -15,57 +11,6 @@ from qgis.core import (QgsProcessing,
                        QgsField)
 from qgis.PyQt.QtCore import QCoreApplication, QVariant
 from qgis.utils import iface
-
-
-class SimplifyNetwork(QgsProcessingAlgorithm):
-    INPUT_LAYER = 'INPUT_LAYER'
-    OUTPUT_LAYER = 'OUTPUT_LAYER'
-    
-    def __init__(self):
-        super().__init__()
-        
-    def name(self):
-        return "SimplifyNetwork"
-        
-    def tr(self, text):
-        return QCoreApplication.translate("SimplifyNetwork", text)
-        
-    def displayName(self):
-        return self.tr("Simplify OSM Network")
-        
-    def group(self):
-        return self.tr("OSMAlgs")
-        
-    def groupId(self):
-        return "OSMAlgs"
-        
-    def shortHelpString(self):
-        return self.tr("Simplify OSM network for pgRouting")
-        
-    def helpUrl(self):
-        return "https://qgis.org"
-        
-    def createInstance(self):
-        return type(self)()
-        
-    def initAlgorithm(self, config=None):
-        self.addParameter(QgsProcessingParameterVectorLayer(
-            self.INPUT_LAYER,
-            self.tr("Input Layer"),
-            [QgsProcessing.TypeVectorAnyGeometry]))
-        self.addParameter(QgsProcessingParameterVectorDestination(
-            self.OUTPUT_LAYER,
-            self.tr("Output Layer")
-        ))
-        
-        def processAlgorithm(self, parameters, context, feedback):
-            input_layer = self.parameterAsVectorLayer(parameters, self.INPUT_LAYER, context)
-            output_layer = self.parameterAsOutputLayer(parameters, self.OUTPUT_LAYER, context)
-            
-            results = {}
-            results[self.OUTPUT_LAYER] = output_layer
-            return results
-
 
 # Initialize QGIS project
 proj = QgsProject.instance()

@@ -137,7 +137,7 @@ class PgRouter():
         # create topology
         query = """
                 SELECT
-                pgr_createTopology('ways', 0.01);
+                pgr_createTopology('ways', 0.0001);
                 """
         self.execute(query)
 
