@@ -180,10 +180,32 @@ for common in commons:
     
 segments = []
 for ss in snap_segs:
+    # segment bbox
+    xr = sorted([ss[0][0], ss[1][0]])
+    yr = sorted([ss[0][1], ss[1][1]])
+    
     found = []
     for cs in check_segs:
-        if ss[0] == cs[0]: found.append(cs)
-    segments.extend(found)
+        if ss[0] == cs[0]:
+            if (cs[1][0] >= xr[0] and cs[1][0] <= xr[1]) and \
+               (cs[1][1] >= yr[0] and cs[1][1] <= yr[1]):
+                   found.append((ss[1], cs[1]))
+        if ss[0] == cs[1]:
+            if (cs[0][0] >= xr[0] and cs[0][0] <= xr[1]) and \
+               (cs[0][1] >= yr[0] and cs[0][1] <= yr[1]):
+                   found.append((ss[1], cs[0]))
+        if ss[1] == cs[1]:
+            if (cs[0][0] >= xr[0] and cs[0][0] <= xr[1]) and \
+               (cs[0][1] >= yr[0] and cs[0][1] <= yr[1]):
+                   found.append((ss[0], cs[0]))
+        if ss[1] == cs[0]:
+            if (cs[1][0] >= xr[0] and cs[1][0] <= xr[1]) and \
+               (cs[1][1] >= yr[0] and cs[1][1] <= yr[1]):
+                   found.append((ss[0], cs[1]))
+    if not found:
+        segments.append(ss)
+    else:
+        segments.extend(found)
 
 #add features 
 for seg in segments:
