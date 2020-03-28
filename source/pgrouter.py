@@ -1,5 +1,7 @@
 import psycopg2 as pg
-from utils import ask_input
+from source.utils import (ask_input,
+                          extent)
+from source.snapper import Snapper
 
 class PgRouter():
     def __init__(self, database, user, password,
@@ -112,34 +114,71 @@ class PgRouter():
         self.create_ways()
 
         # count existent rows
-        query = 'SELECT COUNT(*) FROM WAYS'
+        query = 'SELECT COUNT(*) FROM ways'
         count = self.execute(query)[0][0]
 
-        # insert segments
-        for segment in segments:
-            # row number
-            count += 1
+        # if network already exists
+        # snap simplified to it
+        if count > 0:
+            # do not recover all the network!
+            # only the part close to the new addition
 
-            # form wkt
-            wkt = 'LINESTRING('
-            for point in segment:
-                lat, lon = point
-                wkt += '{} {},'.format(lon, lat)
-            wkt = wkt[:-1] + ')'
+            # recover bbox of simplified
+            bbox = extent(segments)
+            # recover network intersecting the bbox
+            query = \
+                '''
+                SELECT ST_AsText(the_geom)
+                FROM ways
+                WHERE ST_Intersects(
+                    the_geom,
+                    (SELECT ST_MakeEnvelope(%f, %f, %f, %f, 4326))
+                )
+                ''' % bbox
+            ways = self.execute(query)
 
-            # insert query
-            query = """
-                    INSERT INTO ways (id, source, target, the_geom)
-                    VALUES ({}, NULL, NULL, ST_GeomFromText('{}',4326))
-                    """.format(count, wkt)
-            self.execute(query)
+            # convert to geometry
+            # reference to snap the new addition
+            reference = []
+            for way in ways:
+                wkt = way[0]
+                coords = wkt.strip('LINESTRING(')\
+                            .strip(')') \
+                            .replace(',', ' ') \
+                            .split(' ')
+                coords = [float(coord) for coord in coords]
+                edge = [(coords[0], coords[1]),
+                        (coords[2], coords[3])]
+                reference.append(edge)
 
-        # create topology
-        query = """
-                SELECT
-                pgr_createTopology('ways', 0.0001);
-                """
-        self.execute(query)
+            snapper = Snapper(segments, reference)
+
+
+        # # insert segments
+        # for segment in segments:
+        #     # row number
+        #     count += 1
+        #
+        #     # form wkt
+        #     wkt = 'LINESTRING('
+        #     for point in segment:
+        #         lat, lon = point
+        #         wkt += '{} {},'.format(lon, lat)
+        #     wkt = wkt[:-1] + ')'
+        #
+        #     # insert query
+        #     query = """
+        #             INSERT INTO ways (id, source, target, the_geom)
+        #             VALUES ({}, NULL, NULL, ST_GeomFromText('{}',4326))
+        #             """.format(count, wkt)
+        #     self.execute(query)
+        #
+        # # create topology
+        # query = """
+        #         SELECT
+        #         pgr_createTopology('ways', 0.0001);
+        #         """
+        # self.execute(query)
 
 
 

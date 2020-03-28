@@ -230,14 +230,19 @@ class Simplify():
         self.segments = []
         centroids = list(centroid_graph.keys())
         num = len(centroids)
+        # iterate centroids
         for i in range(num):
             curr_centroid = centroids[i]
             curr_edges = centroid_graph[curr_centroid]
 
+            # connect with other centroids
+            # according to the original topology
             for j in range(i+1, num):
                 other_centroid = centroids[j]
                 edges = centroid_graph[other_centroid]
                 common = edges.intersection(curr_edges)
+                # if one common edge at least
+                # centroids should be connected
                 if len(common) > 0:
                     segment = (curr_centroid, other_centroid)
                     self.segments.append(segment)

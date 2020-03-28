@@ -32,3 +32,21 @@ def ask_input(question):
         return True
     else:
         return False
+
+# compute geometry extent
+def extent(geometry):
+    xmin, ymin = float('Inf'), float('Inf')
+    xmax, ymax = float('-Inf'), float('-Inf')
+    for segment in geometry:
+        for pt in segment:
+            # lat, lon ordering
+            if pt[1] <= xmin:
+                xmin = pt[1]
+            if pt[1] >= xmax:
+                xmax = pt[1]
+            if pt[0] <= ymin:
+                ymin = pt[0]
+            if pt[0] >= ymax:
+                ymax = pt[0]
+    return xmin, ymin, xmax, ymax
+
