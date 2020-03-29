@@ -159,7 +159,8 @@ class PgRouter():
             if len(reference) > 0:
                 snapper = Snapper(segments, reference)
                 snapper.point_snap()
-                export_lines('/home/geofluxus/Desktop', 'snapped', snapper.segments)
+                snapper.edge_snap()
+                export_lines('/home/geofluxus/Desktop', 'snapped', snapper.reference)
 
 
         # # insert segments
