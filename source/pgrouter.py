@@ -1,5 +1,6 @@
 import psycopg2 as pg
 from source.utils import (ask_input,
+                          export_lines,
                           extent)
 from source.snapper import Snapper
 
@@ -102,13 +103,13 @@ class PgRouter():
         # start forming network
         print('Create pgRouting database...')
 
-        # option to clear existent database
-        resp = ask_input('- clear database')
-        if resp:
-            resp = ask_input('- are you sure')
-            if resp:
-                self.drop_table('ways')
-                self.drop_table('ways_vertices_pgr')
+        # # option to clear existent database
+        # resp = ask_input('- clear database')
+        # if resp:
+        #     resp = ask_input('- are you sure')
+        #     if resp:
+        #         self.drop_table('ways')
+        #         self.drop_table('ways_vertices_pgr')
 
         # create ways table
         self.create_ways()
@@ -147,11 +148,18 @@ class PgRouter():
                             .replace(',', ' ') \
                             .split(' ')
                 coords = [float(coord) for coord in coords]
-                edge = [(coords[0], coords[1]),
-                        (coords[2], coords[3])]
+                # lat, lon ordering
+                edge = []
+                for i in range(0, len(coords)-1, 2):
+                    edge.append((coords[i+1], coords[i]))
                 reference.append(edge)
 
-            snapper = Snapper(segments, reference)
+            # if not reference, do not snap
+            # the addition is irrelevant to existing network
+            if len(reference) > 0:
+                snapper = Snapper(segments, reference)
+                snapper.point_snap()
+                export_lines('/home/geofluxus/Desktop', 'snapped', snapper.segments)
 
 
         # # insert segments

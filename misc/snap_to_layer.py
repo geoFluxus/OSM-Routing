@@ -13,7 +13,6 @@ simplified = proj.mapLayersByName('simplified')[0]
 
 # compute bbox of simplified
 bbox = simplified.extent()
-print(bbox)
 xmin, xmax = bbox.xMinimum(), bbox.xMaximum()
 ymin, ymax = bbox.yMinimum(), bbox.yMaximum()
 
@@ -47,7 +46,7 @@ for feat in ways.getFeatures():
             
 # publish check layer
 checkLayer.commitChanges()
-#proj.addMapLayer(checkLayer)
+proj.addMapLayer(checkLayer)
 
 # recover check vertices
 vertices = set()
