@@ -162,7 +162,6 @@ class PgRouter():
                 snapper.edge_snap()
                 segments = snapper.segments
 
-
         # insert segments
         for segment in segments:
             # row number

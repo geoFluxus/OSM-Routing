@@ -59,18 +59,19 @@ class Snapper():
 
     # edge snap
     def snap(self, seg, ref):
+        def nearest_point(pt, ref):
+            min, min_pt = float('Inf'), None
+            for p in ref:
+                dist = pp_distance(p, pt)
+                if dist < min:
+                    min, min_pt = dist, p
+            return min_pt
+
         # check if seg bbox contains ref
         seg_bbox = bbox(seg, self.threshold)
         if bbox_contains(ref, seg_bbox):
             # in that case, snap first to first
             # and second to second point
-            def nearest_point(pt, ref):
-                min, min_pt = float('Inf'), None
-                for p in ref:
-                    dist = pp_distance(p, pt)
-                    if dist < min:
-                        min, min_pt = dist, p
-                return min_pt
             snap = []
             # avoid invalid segments
             if seg[0] != nearest_point(seg[0], ref):
@@ -80,18 +81,14 @@ class Snapper():
             return snap
 
         # otherwise, there is common point
-        min, min_pt = float('Inf'), None
-        for pa in seg:
-            for pb in ref:
-                dist = pp_distance(pa, pb)
-                if dist < min:
-                    min, min_pt = dist, (pa, pb)
-        snap = []
+        max, max_pt = float('-Inf'), None
         for pt in seg:
-            if pt not in min_pt: snap.append(pt)
-        for pt in ref:
-            if pt in min_pt: snap.append(pt)
-        return [snap]
+            dist = ps_distance(pt, ref)
+            if dist > max:
+                max, max_pt = dist, pt
+        snap = []
+        snap.append([max_pt, nearest_point(pt, ref)])
+        return snap
 
     # SECOND SNAPPING STAGE
     # snap edges to edges
