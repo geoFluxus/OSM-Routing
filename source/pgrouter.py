@@ -1,7 +1,7 @@
 import psycopg2 as pg
 from source.utils import (ask_input,
-                          export_lines,
-                          extent)
+                          export_lines)
+from source.geom import extent
 from source.snapper import Snapper
 
 class PgRouter():
@@ -160,7 +160,7 @@ class PgRouter():
                 snapper = Snapper(segments, reference)
                 snapper.point_snap()
                 snapper.edge_snap()
-                export_lines('/home/geofluxus/Desktop', 'snapped', snapper.reference)
+                export_lines('/home/geofluxus/Desktop', 'snapped', snapper.segments)
 
 
         # # insert segments
