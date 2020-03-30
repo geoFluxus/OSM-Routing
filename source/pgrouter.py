@@ -103,13 +103,13 @@ class PgRouter():
         # start forming network
         print('Create pgRouting database...')
 
-        # # option to clear existent database
-        # resp = ask_input('- clear database')
-        # if resp:
-        #     resp = ask_input('- are you sure')
-        #     if resp:
-        #         self.drop_table('ways')
-        #         self.drop_table('ways_vertices_pgr')
+        # option to clear existent database
+        resp = ask_input('- clear database')
+        if resp:
+            resp = ask_input('- are you sure')
+            if resp:
+                self.drop_table('ways')
+                self.drop_table('ways_vertices_pgr')
 
         # create ways table
         self.create_ways()
@@ -160,34 +160,34 @@ class PgRouter():
                 snapper = Snapper(segments, reference)
                 snapper.point_snap()
                 snapper.edge_snap()
-                export_lines('/home/geofluxus/Desktop', 'snapped', snapper.segments)
+                segments = snapper.segments
 
 
-        # # insert segments
-        # for segment in segments:
-        #     # row number
-        #     count += 1
-        #
-        #     # form wkt
-        #     wkt = 'LINESTRING('
-        #     for point in segment:
-        #         lat, lon = point
-        #         wkt += '{} {},'.format(lon, lat)
-        #     wkt = wkt[:-1] + ')'
-        #
-        #     # insert query
-        #     query = """
-        #             INSERT INTO ways (id, source, target, the_geom)
-        #             VALUES ({}, NULL, NULL, ST_GeomFromText('{}',4326))
-        #             """.format(count, wkt)
-        #     self.execute(query)
-        #
-        # # create topology
-        # query = """
-        #         SELECT
-        #         pgr_createTopology('ways', 0.0001);
-        #         """
-        # self.execute(query)
+        # insert segments
+        for segment in segments:
+            # row number
+            count += 1
+
+            # form wkt
+            wkt = 'LINESTRING('
+            for point in segment:
+                lat, lon = point
+                wkt += '{} {},'.format(lon, lat)
+            wkt = wkt[:-1] + ')'
+
+            # insert query
+            query = """
+                    INSERT INTO ways (id, source, target, the_geom)
+                    VALUES ({}, NULL, NULL, ST_GeomFromText('{}',4326))
+                    """.format(count, wkt)
+            self.execute(query)
+
+        # create topology
+        query = """
+                SELECT
+                pgr_createTopology('ways', 0.0001);
+                """
+        self.execute(query)
 
 
 

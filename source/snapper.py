@@ -72,8 +72,11 @@ class Snapper():
                         min, min_pt = dist, p
                 return min_pt
             snap = []
-            snap.append([seg[0], nearest_point(seg[0], ref)])
-            snap.append([seg[1], nearest_point(seg[1], ref)])
+            # avoid invalid segments
+            if seg[0] != nearest_point(seg[0], ref):
+                snap.append([seg[0], nearest_point(seg[0], ref)])
+            if seg[1] != nearest_point(seg[1], ref):
+                snap.append([seg[1], nearest_point(seg[1], ref)])
             return snap
 
         # otherwise, there is common point
@@ -88,7 +91,7 @@ class Snapper():
             if pt not in min_pt: snap.append(pt)
         for pt in ref:
             if pt in min_pt: snap.append(pt)
-        return [snap, []]
+        return [snap]
 
     # SECOND SNAPPING STAGE
     # snap edges to edges
@@ -131,31 +134,30 @@ class Snapper():
             if not test_1:
                 self.snapped.append(seg)
                 continue
-            # if only one, snap directly
+            # if only one, no further search required
             elif len(test_1) == 1:
                 snap = self.snap(seg, test_1[0])
                 self.snapped.extend(snap)
                 continue
 
             # SECOND TEST
-            # check for intersections
+            # check for ref segments
+            # "within" segment
             test_2 = []
             for ref in test_1:
-                if intersects(ref, seg):
+                first, second = ref
+                if ps_distance(first, seg) <= self.threshold**2 and \
+                   ps_distance(second, seg) <= self.threshold**2:
                     test_2.append(ref)
 
-            #
-            # if not test_2:
-            #     self.snapped.append(seg)
-            #     continue
-            #
-            # if len(test_2) == 1:
-            #     inter = test_2[0]
-            #     seg.sort(key=lambda pt: pt[1])
-            #     inter.sort(key=lambda pt: pt[1])
-            #     self.snapped.append((seg[0], inter[0]))
-            #     self.snapped.append((seg[1], inter[1]))
-            #     continue
+            if not test_2:
+                self.snapped.append(seg)
+                continue
+            # ignore more complicated checks
+            elif len(test_2) >= 1:
+                snap = self.snap(seg, test_2[0])
+                self.snapped.extend(snap)
+                continue
 
         # replace
         self.segments = self.snapped
