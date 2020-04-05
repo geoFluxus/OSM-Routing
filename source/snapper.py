@@ -4,7 +4,8 @@ from source.geom import (pp_distance,
                          bbox,
                          bbox_contains,
                          bbox_intersects,
-                         intersects)
+                         intersects,
+                         projection)
 
 class Snapper():
     def __init__(self, segments, reference,
@@ -57,39 +58,6 @@ class Snapper():
         # when done, replace
         self.segments = self.snapped
 
-    # edge snap
-    def snap(self, seg, ref):
-        def nearest_point(pt, ref):
-            min, min_pt = float('Inf'), None
-            for p in ref:
-                dist = pp_distance(p, pt)
-                if dist < min:
-                    min, min_pt = dist, p
-            return min_pt
-
-        # check if seg bbox contains ref
-        seg_bbox = bbox(seg, self.threshold)
-        if bbox_contains(ref, seg_bbox):
-            # in that case, snap first to first
-            # and second to second point
-            snap = []
-            # avoid invalid segments
-            if seg[0] != nearest_point(seg[0], ref):
-                snap.append([seg[0], nearest_point(seg[0], ref)])
-            if seg[1] != nearest_point(seg[1], ref):
-                snap.append([seg[1], nearest_point(seg[1], ref)])
-            return snap
-
-        # otherwise, there is common point
-        max, max_pt = float('-Inf'), None
-        for pt in seg:
-            dist = ps_distance(pt, ref)
-            if dist > max:
-                max, max_pt = dist, pt
-        snap = []
-        snap.append([max_pt, nearest_point(pt, ref)])
-        return snap
-
     # SECOND SNAPPING STAGE
     # snap edges to edges
     def edge_snap(self):
@@ -106,58 +74,48 @@ class Snapper():
                seg[::-1] in self.reference:
                 continue
 
-            # FIRST TEST
             # search for reference segments
             # intersecting segment bbox
             # enlarged by snapping threshold
-            test_1 = []
-            collinear = False # collinear flag
-            seg_bbox = bbox(seg, self.threshold) # enlarged bbox
+            refs = []
+            seg_bbox = bbox(seg, self.threshold)  # enlarged bbox
             for ref in self.reference:
                 # bbox intersection
                 if bbox_intersects(ref, seg_bbox):
-                    test_1.append(ref)
-                # check if ref bbox contains segment
-                # if true, ignore segment (collinear)
-                ref_bbox = bbox(ref, self.threshold)
-                if bbox_contains(seg, ref_bbox):
-                    collinear = True
-                    break
+                    refs.append(ref)
 
-            # if collinear, ignore
-            if collinear: continue
-
-            # if no refs, append without further test
-            if not test_1:
+            # if no refs, append segment
+            if not refs:
                 self.snapped.append(seg)
-                continue
-            # if only one, no further search required
-            elif len(test_1) == 1:
-                snap = self.snap(seg, test_1[0])
-                self.snapped.extend(snap)
-                continue
+            else:
+                # check for ref points
+                # to project on current segment
+                pts = set()  # unique points
+                # iterate intersecting ref segments
+                for ref in refs:
+                    for pt in ref:
+                        # check if point is within snap threshold
+                        # do not bother with zero distance points
+                        # they are already projected!
+                        dist = ps_distance(pt, seg)
+                        if dist <= self.threshold**2 and \
+                           dist != 0:
+                            pts.add(pt)
 
-            # SECOND TEST
-            # check for ref segments
-            # "within" segment
-            test_2 = []
-            for ref in test_1:
-                first, second = ref
-                if ps_distance(first, seg) <= self.threshold**2 and \
-                   ps_distance(second, seg) <= self.threshold**2:
-                    test_2.append(ref)
-
-            if not test_2:
-                self.snapped.append(seg)
-                continue
-            # ignore more complicated checks
-            elif len(test_2) >= 1:
-                snap = self.snap(seg, test_2[0])
-                self.snapped.extend(snap)
-                continue
+                # if no projections, append segment
+                if not pts:
+                    self.snapped.append(seg)
+                else:
+                    projs = []
+                    for pt in pts:
+                        projs.append(projection(pt, seg))
+                    seg.extend(projs)
+                    seg.sort(key=lambda pt: pt[0])
+                    self.snapped.append(seg)
 
         # replace
         self.segments = self.snapped
+        self.point_snap()
 
 
 

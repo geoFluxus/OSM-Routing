@@ -40,15 +40,15 @@ def bbox(seg, grow=0.0):
     x = [pt[0] for pt in seg]
     x.sort()
     xmin, xmax = x
-    xmin -= grow / 2.0
-    xmax += grow / 2.0
+    xmin -= grow
+    xmax += grow
 
     # compute ymin, ymax
     y = [pt[1] for pt in seg]
     y.sort()
     ymin, ymax = y
-    ymin -= grow / 2.0
-    ymax += grow / 2.0
+    ymin -= grow
+    ymax += grow
 
     return xmin, ymin, xmax, ymax
 
@@ -105,9 +105,8 @@ def intersects(s_a, s_b):
         return True
     return False
 
-
-# point-segment distance
-def ps_distance(pt, seg):
+# point projection on segment
+def projection(pt, seg):
     # define coordinates
     p1, p2 = seg
     x1, y1 = p1
@@ -129,16 +128,26 @@ def ps_distance(pt, seg):
 
     # point lies "outside" of segment
     # also ignore
-    if u > 1 or u < 0: return float('Inf')
+    if u > 1 or u < 0: return None
 
     # line parametric equations
     # to compute point projection on segment
     x = x1 + u * px
     y = y1 + u * py
 
-    # compute distance vector
-    # between point and projection
-    dx = x - x3
-    dy = y - y3
+    return x, y
 
-    return dx * dx + dy * dy
+# point-segment distance
+def ps_distance(pt, seg):
+    proj = projection(pt, seg)
+    if proj:
+        x0, y0 = pt
+        x, y = proj
+
+        # compute distance vector
+        # between point and projection
+        dx = x - x0
+        dy = y - y0
+
+        return dx * dx + dy * dy
+    return float('Inf')
