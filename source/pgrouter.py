@@ -164,7 +164,6 @@ class PgRouter():
                 snapper = Snapper(segments, reference)
                 snapper.snap()
                 segments = snapper.segments
-                # export_lines('/home/geofluxus/Desktop', 'snap', segments)
 
         # insert segments
         for segment in segments:

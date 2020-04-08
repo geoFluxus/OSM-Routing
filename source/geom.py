@@ -118,7 +118,7 @@ def projection(pt, seg):
     norm = px * px + py * py
     # if norm equals zero
     # the point lies on the segment (ignore)
-    if norm == 0: return None
+    if norm == 0: return pt
 
     # compute parameter
     u = ((x3 - x1) * px + (y3 - y1) * py) / float(norm)

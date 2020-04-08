@@ -17,13 +17,12 @@ class Snapper():
 
     # recover reference points
     def reference_points(self, seg):
-        vertices = set()
+        self.vertices = set()
         seg_bbox = bbox(seg, self.threshold)
         for ref in self.reference:
             if bbox_intersects(ref, seg_bbox):
                 for point in ref:
-                    vertices.add(point)
-        return vertices
+                    self.vertices.add(point)
 
     # FIRST SNAPPING STAGE
     # snap edges to points
@@ -33,7 +32,7 @@ class Snapper():
         # iterate segments
         for segment in self.segments:
             pts = [] # points to form the snapped segment
-            self.vertices = self.reference_points(segment)
+            self.reference_points(segment)
             for pt in segment:
                 # check reference points
                 # for nearest point
@@ -109,13 +108,18 @@ class Snapper():
 
                 # if possible, project segment to ref
                 def reverse_projection(pt, refs):
+                    min, min_ref = float('Inf'), None
                     for ref in refs:
-                        proj = projection(pt, ref)
+                        dist = ps_distance(pt, ref)
+                        if dist < min and dist <= self.threshold**2:
+                            min = dist
+                            min_ref = ref
+                    if min_ref:
+                        proj = projection(pt, min_ref)
                         if proj: return proj
                     return pt
-                first, second = seg
-                seg = [reverse_projection(first, refs),
-                       reverse_projection(second, refs)]
+                for i in range(len(seg)):
+                    seg[i] = reverse_projection(seg[i], refs)
 
                 # if no projections, append segment
                 if not pts:
@@ -123,7 +127,8 @@ class Snapper():
                 else:
                     projs = []
                     for pt in pts:
-                        projs.append(projection(pt, seg))
+                        proj = projection(pt, seg)
+                        if proj: projs.append(proj)
                     seg.extend(projs)
                     seg.sort(key=lambda pt: pt[0])
                     self.snapped.append(seg)

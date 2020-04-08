@@ -246,22 +246,22 @@ class Simplify():
                 edges = centroid_graph[other_centroid]
                 common = edges.intersection(curr_edges)
                 # if one common edge at least
-                # centroids should be connected
-                if len(common) > 0:
-                    segment = (curr_centroid, other_centroid)
-                    self.segments.append(segment)
-                # if len(common) == 1:
-                #     for edge in common:
-                #         segments = douglas_peucker(edge, self.resolution)
-                #         self.segments.extend(segments)
-                #         edges = [segments[0][0], segments[-1][-1]]
-                #         if curr_centroid != nearest_point(curr_centroid, edges):
-                #             self.segments.append((curr_centroid, nearest_point(curr_centroid, edges)))
-                #         if other_centroid != nearest_point(other_centroid, edges):
-                #             self.segments.append((other_centroid, nearest_point(other_centroid, edges)))
-                # elif len(common) > 1:
+                # # centroids should be connected
+                # if len(common) > 0:
                 #     segment = (curr_centroid, other_centroid)
                 #     self.segments.append(segment)
+                if len(common) == 1:
+                    for edge in common:
+                        segments = douglas_peucker(edge, self.resolution)
+                        self.segments.extend(segments)
+                        edges = [segments[0][0], segments[-1][-1]]
+                        if curr_centroid != nearest_point(curr_centroid, edges):
+                            self.segments.append((curr_centroid, nearest_point(curr_centroid, edges)))
+                        if other_centroid != nearest_point(other_centroid, edges):
+                            self.segments.append((other_centroid, nearest_point(other_centroid, edges)))
+                elif len(common) > 1:
+                    segment = (curr_centroid, other_centroid)
+                    self.segments.append(segment)
 
         # stringify once more
         self.stringify(False)
