@@ -1,27 +1,28 @@
-from source.geom import (pp_distance,
-                         ps_distance,
-                         explode,
-                         bbox,
-                         bbox_contains,
-                         bbox_intersects,
-                         intersects,
-                         projection)
+from geom import (pp_distance,
+                  ps_distance,
+                  explode,
+                  bbox,
+                  bbox_intersects,
+                  projection)
+from simplify import Simplify
 
 class Snapper():
     def __init__(self, segments, reference,
                  threshold=0.01):
         self.segments = segments  # to be snapped
         self.reference = reference  # reference geometry
-        self.vertices = self.reference_points()
-        self.threshold = threshold
+        self.vertices = set() # reference vertices
+        self.threshold = threshold  # snap threshold
         self.snapped = []  # snapped segments
 
     # recover reference points
-    def reference_points(self):
+    def reference_points(self, seg):
         vertices = set()
-        for segment in self.reference:
-            for point in segment:
-                vertices.add(point)
+        seg_bbox = bbox(seg, self.threshold)
+        for ref in self.reference:
+            if bbox_intersects(ref, seg_bbox):
+                for point in ref:
+                    vertices.add(point)
         return vertices
 
     # FIRST SNAPPING STAGE
@@ -32,28 +33,32 @@ class Snapper():
         # iterate segments
         for segment in self.segments:
             pts = [] # points to form the snapped segment
+            self.vertices = self.reference_points(segment)
             for pt in segment:
                 # check reference points
-                found = False
+                # for nearest point
+                min, nearest = float('Inf'), None
                 for vex in self.vertices:
-                    # if reference point within snapping distance
-                    # interchange original point with that
-                    if pp_distance(pt, vex) <= self.threshold**2:
-                        # avoid snapping two original points
-                        # at the same reference point
-                        if vex not in pts:
-                            pts.append(vex)
-                        found = True
-                        break
+                    dist = pp_distance(pt, vex)
+                    if dist < min and dist <= self.threshold**2:
+                        min = dist
+                        nearest = vex
 
                 # if not such point found
                 # use original point
-                if not found: pts.append(pt)
+                if nearest:
+                    pts.append(nearest)
+                else:
+                    pts.append(pt)
 
             # append new segment
-            # if it is valid (at least two not identical points)
+            # if it is valid
             if len(pts) >= 2:
-                self.snapped.append(pts)
+                # remove invalid segments of zero length
+                valid = []
+                for pt in pts:
+                    if pt not in valid: valid.append(pt)
+                self.snapped.append(valid)
 
         # when done, replace
         self.segments = self.snapped
@@ -116,6 +121,24 @@ class Snapper():
         # replace
         self.segments = self.snapped
         self.point_snap()
+
+    # snap line layer to line layer
+    def snap(self):
+        self.point_snap()  # point snap
+        self.edge_snap()  # edge snap
+
+        # stringify snapped layer
+        segments = []
+        for seg in self.segments:
+            for i in range(len(seg)-1):
+                segment = (seg[i], seg[i+1])
+                # remove duplicates
+                if segment not in segments:
+                    segments.append(segment)
+        simplify = Simplify()
+        simplify.segments = segments
+        simplify.stringify(False)
+        self.segments = simplify.segments
 
 
 
