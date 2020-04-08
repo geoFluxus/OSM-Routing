@@ -38,15 +38,13 @@ def extent(geometry):
 def bbox(seg, grow=0.0):
     # compute xmin, xmax
     x = [pt[0] for pt in seg]
-    x.sort()
-    xmin, xmax = x
+    xmin, xmax = min(x), max(x)
     xmin -= grow
     xmax += grow
 
     # compute ymin, ymax
     y = [pt[1] for pt in seg]
-    y.sort()
-    ymin, ymax = y
+    ymin, ymax = min(y), max(y)
     ymin -= grow
     ymax += grow
 
@@ -65,10 +63,9 @@ def in_bbox(pt, bbox):
 
 # bbox intersects
 def bbox_intersects(seg, bbox):
-    p1, p2 = seg
-    if in_bbox(p1, bbox) or \
-       in_bbox(p2, bbox):
-        return True
+    for pt in seg:
+        if in_bbox(pt, bbox):
+            return True
     return False
 
 
@@ -121,7 +118,7 @@ def projection(pt, seg):
     norm = px * px + py * py
     # if norm equals zero
     # the point lies on the segment (ignore)
-    # if norm == 0: return float('Inf')
+    if norm == 0: return None
 
     # compute parameter
     u = ((x3 - x1) * px + (y3 - y1) * py) / float(norm)
@@ -151,3 +148,38 @@ def ps_distance(pt, seg):
 
         return dx * dx + dy * dy
     return float('Inf')
+
+# nearest point to point
+def nearest_point(pt, vertices):
+    min, nearest = float('Inf'), None
+    for vex in vertices:
+        dist = pp_distance(pt, vex)
+        if dist < min:
+            min = dist
+            nearest = vex
+    return nearest
+
+# douglas-peucker simplification algorithm
+def douglas_peucker(pts, threshold=0.01):
+    dmax = 0
+    idx = 0
+    end = len(pts)-1
+
+    ref = (pts[0], pts[end])
+    for i in range(1, end - 1):
+        dist = ps_distance(pts[i], ref)
+        if dist > dmax:
+            idx = i
+            dmax = dist
+
+    segments = []
+    if dmax > threshold**2:
+        segs1 = douglas_peucker(pts[:idx+1], threshold)
+        segs2 = douglas_peucker(pts[idx:], threshold)
+
+        segments.extend(segs1)
+        segments.extend(segs2)
+    else:
+        segments.append((pts[0], pts[end]))
+
+    return segments

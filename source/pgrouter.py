@@ -1,13 +1,13 @@
 import psycopg2 as pg
-from source.utils import (ask_input,
-                          export_lines)
-from source.geom import extent
-from source.snapper import Snapper
+from utils import (ask_input, export_lines)
+from geom import extent
+from snapper import Snapper
 
 class PgRouter():
     def __init__(self, database, user, password,
                  host='localhost',
-                 port=5432):
+                 port=5432,
+                 threshold=0.01):
         # database credentials
         self.database = database
         self.user = user
@@ -21,6 +21,9 @@ class PgRouter():
         self.open_connection() # assert connection
         self.create_extension('postgis') # assert postgis
         self.create_extension('pgrouting') # assert pgrouting
+
+        # snap threshold for new additions
+        self.threshold = threshold
 
     # connect to db
     def open_connection(self):
@@ -69,7 +72,8 @@ class PgRouter():
                 CREATE TABLE IF NOT EXISTS ways (
                     id BIGINT PRIMARY KEY,
                     source INTEGER,
-                    target INTEGER
+                    target INTEGER,
+                    cost DOUBLE PRECISION
                 )
                 """
         self.execute(query)
@@ -158,9 +162,9 @@ class PgRouter():
             # the addition is irrelevant to existing network
             if len(reference) > 0:
                 snapper = Snapper(segments, reference)
-                snapper.point_snap()
-                snapper.edge_snap()
+                snapper.snap()
                 segments = snapper.segments
+                # export_lines('/home/geofluxus/Desktop', 'snap', segments)
 
         # insert segments
         for segment in segments:
@@ -176,9 +180,11 @@ class PgRouter():
 
             # insert query
             query = """
-                    INSERT INTO ways (id, source, target, the_geom)
-                    VALUES ({}, NULL, NULL, ST_GeomFromText('{}',4326))
-                    """.format(count, wkt)
+                    INSERT INTO ways (id, source, target, cost, the_geom)
+                    VALUES ({count}, NULL, NULL,
+                            ST_Length(ST_GeomFromText('{wkt}',4326)),
+                            ST_GeomFromText('{wkt}',4326))
+                    """.format(count=count, wkt=wkt)
             self.execute(query)
 
         # create topology

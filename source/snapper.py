@@ -107,6 +107,16 @@ class Snapper():
                            dist != 0:
                             pts.add(pt)
 
+                # if possible, project segment to ref
+                def reverse_projection(pt, refs):
+                    for ref in refs:
+                        proj = projection(pt, ref)
+                        if proj: return proj
+                    return pt
+                first, second = seg
+                seg = [reverse_projection(first, refs),
+                       reverse_projection(second, refs)]
+
                 # if no projections, append segment
                 if not pts:
                     self.snapped.append(seg)

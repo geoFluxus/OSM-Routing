@@ -55,7 +55,8 @@ network['nodes'] = parser.nodes
 # SIMPLIFICATION
 ############################################################################
 # initialize simplification
-simplify = Simplify(network)
+resolution = 0.01
+simplify = Simplify(network, resolution)
 
 # check (stringify OR simplify?)
 print('Simplification started...')
@@ -79,7 +80,7 @@ export(name + '-simplified')
 ############################################################################
 # res = ask_input('save to database')
 # if res:
-print('Storing network to database...\n')
+# print('Storing network to database...\n')
 
 # request db credentials
 # print('Enter database credentials...')
@@ -95,7 +96,8 @@ pgrouter = PgRouter(database='streets',
                     user='postgres',
                     password='postgres',
                     host='localhost',
-                    port='5432')
+                    port='5432',
+                    threshold=resolution)
 pgrouter.create_network(simplify.segments)
 pgrouter.close_connection()
 ############################################################################
