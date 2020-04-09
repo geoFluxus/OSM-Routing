@@ -9,7 +9,7 @@ Currently, the application is implemented in Python 3. For enabling the database
 * [pgRouting](https://pgrouting.org/): The latest version has been tested with pgRouting v3
 
 ## Introduction
-With this application, you can convert OSM road network data into lightweight routable networks. You can extract the simplification results as .csv files (compatible with any GIS environment) or store them directly into a pgRouting-compatible database.
+With this application, you can convert OSM road network data into lightweight routable networks. You can either extract the simplification results as .csv files (compatible with any GIS environment) or store them directly into a pgRouting-compatible database (read more in **Dependencies**).
 
 <p align="center">
   <b>Figure 1. Road network simplification</b>
@@ -18,4 +18,14 @@ With this application, you can convert OSM road network data into lightweight ro
 | <img src="https://github.com//VasileiosBouzas/OSM-Routing/raw/master/img/original.png" alt="Original" width="400" hspace="20"> | <img src="https://github.com//VasileiosBouzas/OSM-Routing/raw/master/img/simplified.png" alt="Simplified" width="400"> |
 |:---:|:---:|
 | **Original (23132 segments)** | **Simplified (1291 segments)** |
+
+## Content
+The Github repo contains the following:
+* /data: Includes several .osm files to test the app
+* /source: Contains all the source code fot the app
+* osmpgrouting.py: The main Python script for using the app
+
+## User's Documentation
+Given that Python 3 is already installed, start the application using osm
+It is also possible to further extend an available database; new additions are snapped (if necessary) to the existent road network and the general topology is updated to incorporate the changes.
 
