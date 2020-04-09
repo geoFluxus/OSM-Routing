@@ -23,9 +23,14 @@ With this application, you can convert OSM road network data into lightweight ro
 The Github repo contains the following:
 * /data: Includes several .osm files to test the app
 * /source: Contains all the source code fot the app
-* osmpgrouting.py: The main Python script for using the app
+* osmrouting.py: The main Python script for using the app
 
 ## User's Documentation
-Given that Python 3 is already installed, start the application using osm
+Given that Python 3 is already installed, start the application by firing osmrouting.py. There are several options for that:
+* Use your preferred Python IDE
+* Open terminal in the OSM-Routing dierctory and use the command: python3 osmpgrouting.py
+
+At first, you need to point out to the .osm file containing the network data (**Pay attention!!!** Currently, only pre-filtered .osm files containing network data are supported. It is still possible to use .osm files either accessed in online platforms (i.e. [GEOFABRIK](http://download.geofabrik.de/)) or downloaded through other means. To pre-process them , use [osmconvert](http://download.geofabrik.de/) to interchange between various OSM file formats and [osmfilter](https://wiki.openstreetmap.org/wiki/Osmfilter) to filter out only road-related data).
+
 It is also possible to further extend an available database; new additions are snapped (if necessary) to the existent road network and the general topology is updated to incorporate the changes.
 
