@@ -93,11 +93,11 @@ if res:
     port = input('- DB_PORT (optional): ') or 5432
 
     # connect to database
-    pgrouter = PgRouter(database='streets',
-                        user='postgres',
-                        password='postgres',
-                        host='localhost',
-                        port='5432',
+    pgrouter = PgRouter(database=database,
+                        user=user,
+                        password=password,
+                        host=host,
+                        port=port,
                         threshold=resolution)
     pgrouter.create_network(simplify.segments)
     pgrouter.close_connection()
