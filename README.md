@@ -26,11 +26,17 @@ The Github repo contains the following:
 * osmrouting.py: The main Python script for using the app
 
 ## User's Documentation
+### Getting started
 Given that Python 3 is already installed, start the application by firing osmrouting.py. There are several options for that:
 * Use your preferred Python IDE
 * Open terminal in the OSM-Routing dierctory and use the command: python3 osmpgrouting.py
 
-At first, you need to point out to the .osm file containing the network data (**Pay attention!!!** Currently, only pre-filtered .osm files containing network data are supported. It is still possible to use .osm files either accessed in online platforms (i.e. [GEOFABRIK](http://download.geofabrik.de/)) or downloaded through other means. To pre-process them , use [osmconvert](http://download.geofabrik.de/) to interchange between various OSM file formats and [osmfilter](https://wiki.openstreetmap.org/wiki/Osmfilter) to filter out only road-related data).
+### Defining input
+At first, you need to select the .osm file containing the network data (**Pay attention!!!** Currently, only pre-filtered .osm files containing network data are supported. It is still possible to use .osm files either accessed in online platforms (i.e. [GEOFABRIK](http://download.geofabrik.de/)) or downloaded through other means. To pre-process them , use [osmconvert](http://download.geofabrik.de/) to interchange between various OSM file formats and [osmfilter](https://wiki.openstreetmap.org/wiki/Osmfilter) to filter out only road-related data).
 
-It is also possible to further extend an available database; new additions are snapped (if necessary) to the existent road network and the general topology is updated to incorporate the changes.
+### Simplification
+After the .osm file is parsed, specify the simplification resolution. This resolution should be provided **[in decimal degrees](https://en.wikipedia.org/wiki/Decimal_degrees)** (if you skip that step, the default value of **0.01** degrees will be used). After the simplification is complete, the result is exported to **desktop** in .csv format. To open it, use any open-source or commercial GIS platform - for example, you can import this file format as a layer in [QGIS](https://qgis.org/en/site/) through Layer > Add Layer > Add Delimited Text Layer.
+
+# Storing to database (optional)
+Once the simplification is finished, you will be requested to store to a prRouting-compatible geodatabase. **Before that**, make sure that you create a PostgreSQL database with **PostGIS** and **pgRouting** extensions. It is also possible to further extend an available database; new additions are snapped (if necessary) to the existent road network and the general topology is updated to incorporate the changes.
 
