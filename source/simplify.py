@@ -1,4 +1,5 @@
-from source.geom import douglas_peucker, nearest_point
+from source.geom import (douglas_peucker,
+                         nearest_point)
 
 class Simplify():
     def __init__(self, network={'ways':{},

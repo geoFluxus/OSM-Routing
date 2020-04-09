@@ -1,7 +1,7 @@
 import psycopg2 as pg
-from utils import (ask_input, export_lines)
-from geom import extent
-from snapper import Snapper
+from source.utils import (ask_input, export_lines)
+from source.geom import extent
+from source.snapper import Snapper
 
 class PgRouter():
     def __init__(self, database, user, password,

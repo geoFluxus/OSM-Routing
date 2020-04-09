@@ -40,7 +40,7 @@ filename = root.filename
 # parse file
 parser = OSMparser(filename)
 print('File: {}'.format(filename))
-print('Parsing file...')
+print('Parsing file...', end="\r", flush=True)
 parser.readfile()
 print('Parsing complete...\n')
 
@@ -55,11 +55,12 @@ network['nodes'] = parser.nodes
 # SIMPLIFICATION
 ############################################################################
 # initialize simplification
-resolution = 0.01
+res = input('Enter simplification resolution (default=0.01 degrees): ')
+resolution = 0.01 if not res else float(res)
 simplify = Simplify(network, resolution)
 
 # check (stringify OR simplify?)
-print('Simplification started...')
+print('Simplification started...', end="\r", flush=True)
 
 # simplification
 simplify.stringify()
@@ -67,9 +68,9 @@ simplify.simplify()
 
 # export file
 def export(name):
-    print('Network exported in desktop...')
+    print('Simplification complete...')
+    print('Network exported in desktop...\n')
     export_lines(path, name, simplify.segments)
-    print('Simplification complete...\n')
 name = os.path.basename(filename)
 export(name + '-simplified')
 ############################################################################
@@ -78,28 +79,28 @@ export(name + '-simplified')
 ############################################################################
 # DATABASE CONNECTION
 ############################################################################
-# res = ask_input('save to database')
-# if res:
-# print('Storing network to database...\n')
+res = ask_input('save to database')
+if res:
+    print('Storing network to database...\n')
 
-# request db credentials
-# print('Enter database credentials...')
-# print('To ignore, press "Enter"')
-# database = input('- DB_NAME: ')
-# user = input('- DB_USER: ')
-# password = input('- DB_PASS: ')
-# host = input('- DB_HOST (optional): ') or 'localhost'
-# port = input('- DB_PORT (optional): ') or 5432
+    # request db credentials
+    print('Enter database credentials...')
+    print('To skip option, press "Enter"')
+    database = input('- DB_NAME: ')
+    user = input('- DB_USER: ')
+    password = input('- DB_PASS: ')
+    host = input('- DB_HOST (optional): ') or 'localhost'
+    port = input('- DB_PORT (optional): ') or 5432
 
-# connect to database
-pgrouter = PgRouter(database='streets',
-                    user='postgres',
-                    password='postgres',
-                    host='localhost',
-                    port='5432',
-                    threshold=resolution)
-pgrouter.create_network(simplify.segments)
-pgrouter.close_connection()
+    # connect to database
+    pgrouter = PgRouter(database='streets',
+                        user='postgres',
+                        password='postgres',
+                        host='localhost',
+                        port='5432',
+                        threshold=resolution)
+    pgrouter.create_network(simplify.segments)
+    pgrouter.close_connection()
 ############################################################################
 
 

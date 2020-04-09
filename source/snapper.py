@@ -1,10 +1,10 @@
-from geom import (pp_distance,
-                  ps_distance,
-                  explode,
-                  bbox,
-                  bbox_intersects,
-                  projection)
-from simplify import Simplify
+from source.geom import (pp_distance,
+                         ps_distance,
+                         explode,
+                         bbox,
+                         bbox_intersects,
+                         projection)
+from source.simplify import Simplify
 
 class Snapper():
     def __init__(self, segments, reference,
