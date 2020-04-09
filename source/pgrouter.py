@@ -105,7 +105,7 @@ class PgRouter():
     # create network tables
     def create_network(self, segments):
         # start forming network
-        print('Create pgRouting database...')
+        print('Update pgRouting database...')
 
         # option to clear existent database
         resp = ask_input('- clear database')
@@ -161,7 +161,7 @@ class PgRouter():
             # if not reference, do not snap
             # the addition is irrelevant to existing network
             if len(reference) > 0:
-                snapper = Snapper(segments, reference)
+                snapper = Snapper(segments, reference, self.threshold)
                 snapper.snap()
                 segments = snapper.segments
 
