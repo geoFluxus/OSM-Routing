@@ -45,5 +45,9 @@ Once the simplification is finished, you will be requested to store to a prRouti
 * *DB_HOST* (optional): The database host. The default value is **localhost**
 * *DB_PORT* (optional): The database port. The default value is **5432**.
 
-It is also possible to further extend an available database; new additions are snapped (if necessary) to the existent road network and the general topology is updated to incorporate the changes.
+After the connection is established, you also have the option to clear the database from any existing data. SO, be careful!
 
+The database is updated with the provided data and the network topology is recovered to enable pgRouting queries (for the time being, the app result supports only [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm), other pgRouting options have not been tested). It is also possible to further extend an exisitng database; new additions are snapped (if necessary) to the available network and the general topology is updated to incorporate the changes.
+
+## Contact
+For 
