@@ -1,7 +1,9 @@
 # OSM-Routing
 OSM Data Processing for the construction of lightweight routable networks (compatible with pgRouting)
 
-<p style="center;">Centered text</p>
+<p align="center">
+  <b>Figure 1. Road network simplification</b>
+</p>
 
 | <img src="https://github.com//VasileiosBouzas/OSM-Routing/raw/master/img/original.png" alt="Original" width="400" hspace="20"> | <img src="https://github.com//VasileiosBouzas/OSM-Routing/raw/master/img/simplified.png" alt="Simplified" width="400"> |
 |:---:|:---:|
