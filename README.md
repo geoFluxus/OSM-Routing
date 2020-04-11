@@ -12,12 +12,12 @@ Currently, the application is implemented in [Python 3](https://www.python.org/)
 With this application, you can convert OSM road network data into lightweight routable networks. You can either extract the simplification results as .csv files (compatible with any GIS environment) or store them directly into a pgRouting-compatible database (read more in **Dependencies**).
 
 <p align="center">
-  <b>Figure 1. Road network simplification</b>
+  <b>Figure 1. Road network simplification (resolution: 0.01 degs)</b>
 </p>
 
 | <img src="https://github.com//VasileiosBouzas/OSM-Routing/raw/master/img/original.png" alt="Original" width="400"> | <img src="https://github.com//VasileiosBouzas/OSM-Routing/raw/master/img/simplified.png" alt="Simplified" width="400"> |
 |:---:|:---:|
-| **Original (23132 segments)** | **Simplified (1291 segments)** |
+| Original (23132 segments) | Simplified (1291 segments) |
 
 ## Content
 The Github repo contains the following:
