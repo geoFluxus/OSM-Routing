@@ -41,32 +41,12 @@ After the .osm file is parsed, specify the simplification resolution. This resol
   <b>Table 1. Level resolutions in decimal degrees (source: Wikipedia)</b>
 </p>
 
-<table style="margin-left:auto; margin-right:auto;">
-  <thead>
-    <tr>
-      <th align="center">Resolution</th>
-      <th align="center">Level</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td align="center">1.0</td>
-      <td align="center">Country or large region</td>
-    </tr>
-    <tr>
-      <td align="center">0.1</td>
-      <td align="center">Large city or district</td>
-    </tr>
-    <tr>
-      <td align="center">0.01</td>
-      <td align="center">Town or village</td>
-    </tr>
-    <tr>
-      <td align="center">0.001</td>
-      <td align="center">Neighborhood, street</td>
-    </tr>
-  </tbody>
-</table>
+|Resolution|Level|
+|:---:|:---:|
+|1.0|Country or large region|
+|0.1|Large city or district|
+|0.01|Town or village|
+|0.001|Neighborhood, street|
 
 ### Storing to database (optional)
 Once the simplification is finished, you will be requested to store to a prRouting-compatible geodatabase. **Before that**, make sure that you create a PostgreSQL database with **PostGIS** and **pgRouting** extensions. For this database, you will have to provide the app with the following credentials (to skip an option, press the **Enter** key):
