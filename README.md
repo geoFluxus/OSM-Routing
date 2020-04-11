@@ -21,9 +21,9 @@ With this application, you can convert OSM road network data into lightweight ro
 
 ## Content
 The Github repo contains the following:
-* /data: Includes several .osm files to test the app
-* /source: Contains all the source code fot the app
-* osmrouting.py: The main Python script for using the app
+* */data*: Includes several .osm files to test the app
+* */source*: Contains all the source code fot the app
+* *osmrouting.py*: The main Python script for using the app
 
 ## User's Documentation
 ### Getting started
