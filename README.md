@@ -38,10 +38,10 @@ At first, you need to select the .osm file containing the network data (**Pay at
 After the .osm file is parsed, specify the simplification resolution. This resolution should be provided **[in decimal degrees](https://en.wikipedia.org/wiki/Decimal_degrees)** (if you skip that step, the default value of **0.01** degrees will be used). After the simplification is complete, the result is exported to **desktop** in .csv format. To open it, use any open-source or commercial GIS platform - for example, you can import this file format as a layer in [QGIS](https://qgis.org/en/site/) through *Layer > Add Layer > Add Delimited Text Layer*.
 
 <p align="center">
-  <b>Table 1. Level resolutions (source: Wikipedia)</b>
+  <b>Table 1. Level resolutions in decimal degrees (source: Wikipedia)</b>
 </p>
 
-|         Resolution (in decimal degrees)         |         Level         |
+|Resolution|Level|
 |:---:|:---:|
 |1.0|Country or large region|
 |0.1|Large city or district|
