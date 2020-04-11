@@ -15,7 +15,7 @@ With this application, you can convert OSM road network data into lightweight ro
   <b>Figure 1. Road network simplification</b>
 </p>
 
-| <img src="https://github.com//VasileiosBouzas/OSM-Routing/raw/master/img/original.png" alt="Original" width="400" hspace="20"> | <img src="https://github.com//VasileiosBouzas/OSM-Routing/raw/master/img/simplified.png" alt="Simplified" width="400"> |
+| <img src="https://github.com//VasileiosBouzas/OSM-Routing/raw/master/img/original.png" alt="Original" width="400"> | <img src="https://github.com//VasileiosBouzas/OSM-Routing/raw/master/img/simplified.png" alt="Simplified" width="400"> |
 |:---:|:---:|
 | **Original (23132 segments)** | **Simplified (1291 segments)** |
 
