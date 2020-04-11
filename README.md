@@ -27,7 +27,7 @@ The Github repo contains the following:
 
 ## User's Documentation
 ### Getting started
-Given that Python 3 is already installed, start the application by firing osmrouting.py. There are several options for that:
+Given that Python 3 is already installed, start the application by firing *osmrouting.py*. There are several options for that:
 * Use your preferred Python IDE
 * Open terminal in the OSM-Routing directory and use the command: *python3 osmpgrouting.py*
 
