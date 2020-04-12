@@ -1,0 +1,75 @@
+/* Origin */
+WITH origin AS (
+	SELECT ST_GeomFromText('POINT(4.9078 52.8350)', 4326) AS geom
+),
+
+/* Nearest way to point */
+nearest_way AS (
+	SELECT ways.the_geom as geom,
+		   ways.source as source,
+		   ways.target as target
+	FROM ways, origin
+	ORDER BY ST_Distance(the_geom,
+						 origin.geom,
+						 true) 
+	ASC LIMIT 1
+),
+
+/* Projection to nearest way */
+projection AS (
+	SELECT ST_Line_Locate_Point(nearest_way.geom, origin.geom) AS fraction,
+		   ST_Line_Interpolate_Point(nearest_way.geom, 
+			ST_Line_Locate_Point(nearest_way.geom, 
+								 origin.geom)) AS geom
+	FROM nearest_way, origin
+),
+
+/* Projection distance */
+proj_distance AS (
+	SELECT st_makeline(origin.geom, projection.geom) as geom
+	FROM origin, projection
+),
+
+/* Source & target of nearest way */
+vertices AS (
+	SELECT source as id, 
+		   ways_vertices_pgr.the_geom as geom,
+		   0 as fraction
+	FROM nearest_way
+	LEFT JOIN ways_vertices_pgr
+	ON source = ways_vertices_pgr.id
+	UNION
+	SELECT target as id, 
+		   ways_vertices_pgr.the_geom as geom,
+		   1 as fraction
+	FROM nearest_way
+	LEFT JOIN ways_vertices_pgr
+	ON target = ways_vertices_pgr.id
+),
+
+/* Nearest source/target to projection */
+nearest_vertex AS (
+	SELECT vertices.id as id, 
+		   vertices.geom as geom,
+		   vertices.fraction as fraction
+	FROM vertices, projection
+	ORDER BY ST_Distance(vertices.geom,
+						 projection.geom,
+						 true) 
+	ASC LIMIT 1
+)
+
+/* Linestring between projection and source/target */
+SELECT CASE WHEN (SELECT projection.fraction < nearest_vertex.fraction 
+                  FROM projection, nearest_vertex)
+THEN
+	(SELECT st_line_substring(nearest_way.geom,
+							  projection.fraction,
+                              nearest_vertex.fraction)
+	 FROM nearest_way, nearest_vertex, projection)
+ELSE
+	(SELECT st_line_substring(nearest_way.geom,
+                              nearest_vertex.fraction,
+							  projection.fraction)
+	 FROM nearest_way, nearest_vertex, projection)
+END
