@@ -3,6 +3,11 @@ WITH origin AS (
 	SELECT ST_GeomFromText('POINT(5.241 53.367)', 4326) AS geom
 ),
 
+/* DESTINATION */
+destination AS (
+	SELECT ST_GeomFromText('POINT(6.8259 53.4527)', 4326) AS geom
+),
+
 /* Nearest way to point */
 origin_nearest_way AS (
 	SELECT ways.the_geom as geom,
@@ -52,9 +57,9 @@ origin_nearest_vertex AS (
 	SELECT origin_vertices.id as id, 
 		   origin_vertices.geom as geom,
 		   origin_vertices.fraction as fraction
-	FROM origin_vertices, origin_projection
+	FROM origin_vertices, destination
 	ORDER BY ST_Distance(origin_vertices.geom,
-						 origin_projection.geom,
+						 destination.geom,
 						 true) 
 	ASC LIMIT 1
 ),
@@ -80,11 +85,6 @@ origin_linestring AS (
 	ELSE 
 		(SELECT ST_GeomFromText('LINESTRING EMPTY') as geom)
 	END
-),
-
-/* DESTINATION */
-destination AS (
-	SELECT ST_GeomFromText('POINT(6.8259 53.4527)', 4326) AS geom
 ),
 
 /* Nearest way to point */
@@ -136,9 +136,9 @@ destination_nearest_vertex AS (
 	SELECT destination_vertices.id as id, 
 		   destination_vertices.geom as geom,
 		   destination_vertices.fraction as fraction
-	FROM destination_vertices, destination_projection
+	FROM destination_vertices, origin
 	ORDER BY ST_Distance(destination_vertices.geom,
-						 destination_projection.geom,
+						 origin.geom,
 						 true) 
 	ASC LIMIT 1
 ),
