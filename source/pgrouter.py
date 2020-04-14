@@ -8,8 +8,7 @@ class PgRouter():
     def __init__(self, database, user, password,
                  host='localhost',
                  port=5432,
-                 threshold=0.01,
-                 epsg=4326):
+                 threshold=0.01):
         # database credentials
         self.database = database
         self.user = user
@@ -26,9 +25,6 @@ class PgRouter():
 
         # snap threshold for new additions
         self.threshold = threshold
-
-        # EPSG
-        self.proj = Transformer.from_crs(epsg, 4326)
 
     # connect to db
     def open_connection(self):
@@ -178,8 +174,6 @@ class PgRouter():
             # form wkt
             wkt = 'LINESTRING('
             for point in segment:
-                # ALWAYS project to EPSG:4326
-                point = self.proj.transform(point[0], point[1])
                 lat, lon = point
                 wkt += '{} {},'.format(lon, lat)
             wkt = wkt[:-1] + ')'

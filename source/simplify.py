@@ -15,7 +15,8 @@ class Simplify():
         self.segments = [] # segment storage
         self.clustered = {} # clustered intersection inventory
         self.clusters = [] # intersection clusters
-        self.proj = Transformer.from_crs(4326, epsg)
+        self.epsg = epsg
+        self.proj = Transformer.from_crs(4326, self.epsg)
         self.resolution = resolution
 
     # recover original topology
@@ -260,16 +261,33 @@ class Simplify():
                 #     self.segments.append(segment)
                 if len(common) == 1:
                     for edge in common:
+                        # apply douglas-peucker to original segment
                         segments = douglas_peucker(edge, self.resolution)
                         self.segments.extend(segments)
+
+                        # add the new intersections
                         edges = [segments[0][0], segments[-1][-1]]
-                        if curr_centroid != nearest_point(curr_centroid, edges):
-                            self.segments.append((curr_centroid, nearest_point(curr_centroid, edges)))
-                        if other_centroid != nearest_point(other_centroid, edges):
-                            self.segments.append((other_centroid, nearest_point(other_centroid, edges)))
+                        nearest = nearest_point(curr_centroid, edges)
+                        if curr_centroid != nearest:
+                            self.segments.append((curr_centroid, nearest))
+                        nearest = nearest_point(other_centroid, edges)
+                        if other_centroid != nearest:
+                            self.segments.append((other_centroid, nearest))
                 elif len(common) > 1:
                     segment = (curr_centroid, other_centroid)
                     self.segments.append(segment)
 
         # stringify once more
         self.stringify(False)
+
+        # transform to EPSG:4326
+        transformed = []
+        self.proj = Transformer.from_crs(self.epsg, 4326)
+        for segment in self.segments:
+            trans = []
+            for pt in segment:
+                pt = self.proj.transform(pt[0], pt[1])
+                trans.append(pt)
+            transformed.append(trans)
+        self.segments = transformed
+

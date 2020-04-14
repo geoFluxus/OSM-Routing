@@ -77,7 +77,7 @@ if filename.endswith('.osm'):
     def export(name):
         print('Simplification complete...')
         print('Network exported in desktop...\n')
-        export_lines(path, name, simplify.segments, epsg)
+        export_lines(path, name, simplify.segments)
     name = os.path.basename(filename)
     export(name + '-simplified')
 
@@ -124,8 +124,7 @@ if res:
                         password=password,
                         host=host,
                         port=port,
-                        threshold=resolution,
-                        epsg=epsg)
+                        threshold=resolution)
     pgrouter.create_network(segments)
     pgrouter.close_connection()
 ############################################################################
