@@ -2,12 +2,14 @@ import psycopg2 as pg
 from source.utils import (ask_input, export_lines)
 from source.geom import extent
 from source.snapper import Snapper
+from pyproj import Transformer
 
 class PgRouter():
     def __init__(self, database, user, password,
                  host='localhost',
                  port=5432,
-                 threshold=0.01):
+                 threshold=0.01,
+                 epsg=4326):
         # database credentials
         self.database = database
         self.user = user
@@ -24,6 +26,9 @@ class PgRouter():
 
         # snap threshold for new additions
         self.threshold = threshold
+
+        # EPSG
+        self.proj = Transformer.from_crs(epsg, 4326)
 
     # connect to db
     def open_connection(self):
@@ -173,6 +178,8 @@ class PgRouter():
             # form wkt
             wkt = 'LINESTRING('
             for point in segment:
+                # ALWAYS project to EPSG:4326
+                point = self.proj.transform(point[0], point[1])
                 lat, lon = point
                 wkt += '{} {},'.format(lon, lat)
             wkt = wkt[:-1] + ')'
@@ -181,8 +188,8 @@ class PgRouter():
             query = """
                     INSERT INTO ways (id, source, target, cost, the_geom)
                     VALUES ({count}, NULL, NULL,
-                            ST_Length(ST_GeomFromText('{wkt}',4326)),
-                            ST_GeomFromText('{wkt}',4326))
+                            ST_Length(ST_GeomFromText('{wkt}', 4326)),
+                            ST_GeomFromText('{wkt}', 4326))
                     """.format(count=count, wkt=wkt)
             self.execute(query)
 

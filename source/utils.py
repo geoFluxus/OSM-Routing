@@ -10,14 +10,23 @@ def export_points(path, name, points, attrs=[]):
     fil.close()
 
 # export line layer (.csv)
-def export_lines(path, name, lines):
+def export_lines(path, name, lines, epsg):
+    from pyproj import CRS
+    crs = CRS.from_epsg(epsg)
+    unit = str(crs.axis_info[0])
+    reverse = False  # degree-unit crs have reverse coord order
+    if 'degree' in unit: reverse = True
+
     filename = path + '/' + name + '.csv'
     fil = open(filename, 'w')
     fil.write('wkt\n')
     for line in lines:
         row = 'LINESTRING('
         for point in line:
-            lat, lon = point
+            if reverse:
+                lat, lon = point
+            else:
+                lon, lat = point
             row += '{} {},'.format(lon, lat)
         row = row[:-1] + ')\n'
         fil.write(row)

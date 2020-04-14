@@ -1,9 +1,11 @@
 from source.geom import (douglas_peucker,
                          nearest_point)
+from pyproj import Transformer
 
 class Simplify():
     def __init__(self, network={'ways':{},
                                 'nodes':{}},
+                 epsg='4326',
                  resolution=0.01):
         self.ways = network['ways']
         self.nodes = network['nodes']
@@ -13,6 +15,7 @@ class Simplify():
         self.segments = [] # segment storage
         self.clustered = {} # clustered intersection inventory
         self.clusters = [] # intersection clusters
+        self.proj = Transformer.from_crs(4326, epsg)
         self.resolution = resolution
 
     # recover original topology
@@ -24,6 +27,10 @@ class Simplify():
             self.segments = []
             for i in range(n):
                 start, end = self.nodes[points[i]], self.nodes[points[i + 1]]
+                # project to requested crs
+                start = self.proj.transform(start[0], start[1])
+                end = self.proj.transform(end[0], end[1])
+                # create segment
                 segment = (start, end)
                 self.segments.append(segment)
 
@@ -197,7 +204,7 @@ class Simplify():
                     cluster.append(dest)
                     self.clustered[dest] = True
 
-            self.clusters.append(cluster)
+            if cluster: self.clusters.append(cluster)
 
     # compute cluster centroid
     @staticmethod

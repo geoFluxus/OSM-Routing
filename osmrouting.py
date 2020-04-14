@@ -57,10 +57,14 @@ if filename.endswith('.osm'):
 ############################################################################
 # SIMPLIFICATION
 ############################################################################
+    # define epsg
+    res = input('Provide EPSG to transform (default=4326): ')
+    epsg = 4326 if not res else int(res)
+
     # initialize simplification
-    res = input('Enter simplification resolution (default=0.01 degrees): ')
+    res = input('Enter simplification resolution in EPSG units (default=0.01 degrees): ')
     resolution = 0.01 if not res else float(res)
-    simplify = Simplify(network, resolution)
+    simplify = Simplify(network, epsg, resolution)
 
     # check (stringify OR simplify?)
     print('Simplification started...', end="\r", flush=True)
@@ -73,7 +77,7 @@ if filename.endswith('.osm'):
     def export(name):
         print('Simplification complete...')
         print('Network exported in desktop...\n')
-        export_lines(path, name, simplify.segments)
+        export_lines(path, name, simplify.segments, epsg)
     name = os.path.basename(filename)
     export(name + '-simplified')
 
@@ -120,9 +124,9 @@ if res:
                         password=password,
                         host=host,
                         port=port,
-                        threshold=resolution)
+                        threshold=resolution,
+                        epsg=epsg)
     pgrouter.create_network(segments)
     pgrouter.close_connection()
 ############################################################################
-
 
