@@ -28,7 +28,7 @@ class PgRouter():
         self.threshold = threshold
 
         # EPSG
-        self.proj = Transformer.from_crs(epsg, 4326)
+        self.epsg = epsg
 
     # connect to db
     def open_connection(self):
@@ -134,7 +134,14 @@ class PgRouter():
             # only the part close to the new addition
 
             # recover bbox of simplified
+            proj = Transformer.from_crs(self.epsg, 4326)
             bbox = extent(segments)
+            if self.epsg != 4326:
+                xmin, ymin, xmax, ymax = bbox
+                ymin, xmin = proj.transform(ymin, xmin)
+                ymax, xmax = proj.transform(ymax, xmax)
+                bbox = (xmin, ymin, xmax, ymax)
+
             # recover network intersecting the bbox
             query = \
                 '''
@@ -150,6 +157,7 @@ class PgRouter():
             # convert to geometry
             # reference to snap the new addition
             reference = []
+            proj = Transformer.from_crs(4326, self.epsg)
             for way in ways:
                 wkt = way[0]
                 coords = wkt.strip('LINESTRING(')\
@@ -160,7 +168,8 @@ class PgRouter():
                 # lat, lon ordering
                 edge = []
                 for i in range(0, len(coords)-1, 2):
-                    edge.append((coords[i+1], coords[i]))
+                    point = proj.transform(coords[i+1], coords[i])
+                    edge.append(point)
                 reference.append(edge)
 
             # if not reference, do not snap
@@ -171,6 +180,7 @@ class PgRouter():
                 segments = snapper.segments
 
         # insert segments
+        proj = Transformer.from_crs(self.epsg, 4326)
         for segment in segments:
             # row number
             count += 1
@@ -179,7 +189,7 @@ class PgRouter():
             wkt = 'LINESTRING('
             for point in segment:
                 # ALWAYS project to EPSG:4326
-                point = self.proj.transform(point[0], point[1])
+                point = proj.transform(point[0], point[1])
                 lat, lon = point
                 wkt += '{} {},'.format(lon, lat)
             wkt = wkt[:-1] + ')'

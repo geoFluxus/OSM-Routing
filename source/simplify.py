@@ -5,7 +5,7 @@ from pyproj import Transformer
 class Simplify():
     def __init__(self, network={'ways':{},
                                 'nodes':{}},
-                 epsg='4326',
+                 epsg=4326,
                  resolution=0.01):
         self.ways = network['ways']
         self.nodes = network['nodes']
@@ -15,12 +15,13 @@ class Simplify():
         self.segments = [] # segment storage
         self.clustered = {} # clustered intersection inventory
         self.clusters = [] # intersection clusters
-        self.proj = Transformer.from_crs(4326, epsg)
+        self.epsg = epsg
         self.resolution = resolution
 
     # recover original topology
     def build_init_graph(self):
         # traverse all linestrings
+        proj = Transformer.from_crs(4326, self.epsg)
         for points in self.ways.values():
             # split into segments
             n = len(points) - 1
@@ -28,8 +29,8 @@ class Simplify():
             for i in range(n):
                 start, end = self.nodes[points[i]], self.nodes[points[i + 1]]
                 # project to requested crs
-                start = self.proj.transform(start[0], start[1])
-                end = self.proj.transform(end[0], end[1])
+                start = proj.transform(start[0], start[1])
+                end = proj.transform(end[0], end[1])
                 # create segment
                 segment = (start, end)
                 self.segments.append(segment)
