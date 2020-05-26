@@ -1,9 +1,11 @@
 from source.geom import (douglas_peucker,
                          nearest_point)
+from pyproj import Transformer
 
 class Simplify():
     def __init__(self, network={'ways':{},
                                 'nodes':{}},
+                 epsg=4326,
                  resolution=0.01):
         self.ways = network['ways']
         self.nodes = network['nodes']
@@ -13,17 +15,23 @@ class Simplify():
         self.segments = [] # segment storage
         self.clustered = {} # clustered intersection inventory
         self.clusters = [] # intersection clusters
+        self.epsg = epsg
         self.resolution = resolution
 
     # recover original topology
     def build_init_graph(self):
         # traverse all linestrings
+        proj = Transformer.from_crs(4326, self.epsg)
         for points in self.ways.values():
             # split into segments
             n = len(points) - 1
             self.segments = []
             for i in range(n):
                 start, end = self.nodes[points[i]], self.nodes[points[i + 1]]
+                # project to requested crs
+                start = proj.transform(start[0], start[1])
+                end = proj.transform(end[0], end[1])
+                # create segment
                 segment = (start, end)
                 self.segments.append(segment)
 
@@ -197,7 +205,7 @@ class Simplify():
                     cluster.append(dest)
                     self.clustered[dest] = True
 
-            self.clusters.append(cluster)
+            if cluster: self.clusters.append(cluster)
 
     # compute cluster centroid
     @staticmethod
@@ -253,13 +261,18 @@ class Simplify():
                 #     self.segments.append(segment)
                 if len(common) == 1:
                     for edge in common:
+                        # apply douglas-peucker to original segment
                         segments = douglas_peucker(edge, self.resolution)
                         self.segments.extend(segments)
+
+                        # add the new intersections
                         edges = [segments[0][0], segments[-1][-1]]
-                        if curr_centroid != nearest_point(curr_centroid, edges):
-                            self.segments.append((curr_centroid, nearest_point(curr_centroid, edges)))
-                        if other_centroid != nearest_point(other_centroid, edges):
-                            self.segments.append((other_centroid, nearest_point(other_centroid, edges)))
+                        nearest = nearest_point(curr_centroid, edges)
+                        if curr_centroid != nearest:
+                            self.segments.append((curr_centroid, nearest))
+                        nearest = nearest_point(other_centroid, edges)
+                        if other_centroid != nearest:
+                            self.segments.append((other_centroid, nearest))
                 elif len(common) > 1:
                     segment = (curr_centroid, other_centroid)
                     self.segments.append(segment)
