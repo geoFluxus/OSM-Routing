@@ -2,6 +2,7 @@ class OSMparser():
     def __init__(self, filename):
         self.filename = filename
         self.file = None
+        self.inv = {}  # node inventory
         self.nodes = {}
         self.ways = {}
 
@@ -66,8 +67,9 @@ class OSMparser():
                     .replace('"/>', '') \
                     .strip('\t') \
                     .strip('\n')
-                # append to way
+                # append to way and inventory
                 self.ways[id].append(ref)
+                self.inv[ref] = True
         return row
 
     # process nodes
@@ -75,12 +77,16 @@ class OSMparser():
         if '<node' in line:
             # recover tags
             tags = line.replace('<node ', '') \
-                .replace('>', '') \
-                .replace('/', '') \
-                .split()
+                       .replace('>', '') \
+                       .replace('/', '') \
+                       .split()
 
-            # id / lat /lon
+            # check if node belongs to way
             id = tags[0].strip('id=').strip('"')
-            lat = float(tags[1].strip('lat=').strip('"'))
-            lon = float(tags[2].strip('lon=').strip('"'))
-            self.nodes[id] = (lat, lon)
+            belongs = self.inv.get(id, False)
+
+            # if belongs, process
+            if belongs:
+                lat = float(tags[1].strip('lat=').strip('"'))
+                lon = float(tags[2].strip('lon=').strip('"'))
+                self.nodes[id] = (lat, lon)
