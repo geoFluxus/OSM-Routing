@@ -1,5 +1,6 @@
 from tkinter import *
 from math import floor
+from source.utils import print
 
 
 class OSMparser():
@@ -20,14 +21,15 @@ class OSMparser():
             'trunk_link': 1,
             'primary_link': 1,
             'secondary_link': 1,
-             'tertiary_link': 0
+            'tertiary_link': 0
         }
 
     def readfile(self):
         # Open file
         try:
-            with open(self.filename) as f:
+            with open(self.filename, "rb") as f:
                 rows = sum(1 for _ in f)
+            print(f'Total: {rows} lines')
         except FileNotFoundError:
             raise FileNotFoundError('File not found...')
 
@@ -41,14 +43,15 @@ class OSMparser():
             if not mode:
                 self.render_tag_menu()
 
-            self.file = open(self.filename, 'r')
+            self.file = open(self.filename, 'r', encoding="utf8")
             line = self.file.readline()
             row = 1
             while line:
                 # progress
-                if row % 100000 == 0: # progress bar slow...
+                if row % 100000 == 0:  # progress bar slow...
                     progress = row / rows * 100
-                    print('Progress: {:.1f}%'.format(progress), end="\r", flush=True)
+                    print('Progress: {:.1f}%'.format(
+                        progress), end="\r", flush=True)
 
                 # mode 0: process ways
                 # mode 1: process nodes
@@ -186,9 +189,13 @@ class OSMparser():
                 button.deselect()
 
         # extra buttons (continue, select etc.)
-        Button(root, text='Continue', command=quit).grid(row=n + 1, column=0, padx=20, pady=20)
-        Button(root, text='Select all', command=select).grid(row=n + 2, column=0, padx=20)
-        Button(root, text='Quit', command=exit).grid(row=n + 1, column=1, padx=20, pady=20)
-        Button(root, text='Deselect all', command=deselect).grid(row=n + 2, column=1, padx=20)
+        Button(root, text='Continue', command=quit).grid(
+            row=n + 1, column=0, padx=20, pady=20)
+        Button(root, text='Select all', command=select).grid(
+            row=n + 2, column=0, padx=20)
+        Button(root, text='Quit', command=exit).grid(
+            row=n + 1, column=1, padx=20, pady=20)
+        Button(root, text='Deselect all', command=deselect).grid(
+            row=n + 2, column=1, padx=20)
 
         root.mainloop()

@@ -1,3 +1,6 @@
+from source.utils import print
+
+
 class WKTparser():
     def __init__(self, filename):
         self.filename = filename

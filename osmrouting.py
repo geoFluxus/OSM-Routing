@@ -3,10 +3,9 @@ from source.wktparser import WKTparser
 from source.simplify import Simplify
 from source.pgrouter import PgRouter
 from source.utils import (export_lines,
-                          export_points,
-                          ask_input)
-from tkinter import (messagebox,
-                     filedialog,
+                          ask_input,
+                          print)
+from tkinter import (filedialog,
                      Tk)
 import os
 

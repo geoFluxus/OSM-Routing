@@ -1,8 +1,10 @@
 import psycopg2 as pg
-from source.utils import (ask_input, export_lines)
+from source.utils import (ask_input)
 from source.geom import extent
 from source.snapper import Snapper
 from pyproj import Transformer
+from source.utils import print
+
 
 class PgRouter():
     def __init__(self, database, user, password,

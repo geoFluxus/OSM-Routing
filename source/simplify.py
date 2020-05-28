@@ -2,6 +2,7 @@ from source.geom import (douglas_peucker,
                          nearest_point)
 from pyproj import Transformer
 
+
 class Simplify():
     def __init__(self, network={'ways':{},
                                 'nodes':{}},
@@ -190,22 +191,26 @@ class Simplify():
         # iterate intersections
         inters = list(self.graph.keys())
         num = len(inters)
-        for i in range(num):
-            orig = inters[i]
-            if self.clustered[orig]: continue
+        if self.resolution:
+            for i in range(num):
+                orig = inters[i]
+                if self.clustered[orig]: continue
 
-            # form cluster by distance
-            cluster = []
-            for j in range(i, num):
-                dest = inters[j]
-                if self.clustered[dest]: continue
+                # form cluster by distance
+                cluster = []
+                for j in range(i, num):
+                    dest = inters[j]
+                    if self.clustered[dest]: continue
 
-                dist = self.compute_dist(orig, dest)
-                if dist <= self.resolution ** 2:
-                    cluster.append(dest)
-                    self.clustered[dest] = True
+                    dist = self.compute_dist(orig, dest)
+                    if dist <= self.resolution ** 2:
+                        cluster.append(dest)
+                        self.clustered[dest] = True
 
-            if cluster: self.clusters.append(cluster)
+                if cluster: self.clusters.append(cluster)
+        else:
+            for inter in inters:
+                self.clusters.append([inter])
 
     # compute cluster centroid
     @staticmethod

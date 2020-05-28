@@ -1,3 +1,14 @@
+from __future__ import print_function
+import builtins as __builtin__
+import time
+
+
+def print(*args, **kwargs):
+    local_time = time.localtime()
+    __builtin__.print(time.strftime('%a, %d %b %Y %H:%M:%S', local_time), end=": ")
+    return __builtin__.print(*args, **kwargs)
+
+
 # export point layer (.csv)
 def export_points(path, name, points, attrs=[]):
     filename = path + '/' + name + '.csv'
@@ -8,6 +19,7 @@ def export_points(path, name, points, attrs=[]):
         row = 'POINT({} {});{}\n'.format(lon, lat, attr)
         fil.write(row)
     fil.close()
+
 
 # export line layer (.csv)
 def export_lines(path, name, lines, epsg):
@@ -31,6 +43,7 @@ def export_lines(path, name, lines, epsg):
         row = row[:-1] + ')\n'
         fil.write(row)
     fil.close()
+
 
 # ask (yes/no) input
 def ask_input(question):

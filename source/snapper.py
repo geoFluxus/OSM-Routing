@@ -6,6 +6,7 @@ from source.geom import (pp_distance,
                          projection)
 from source.simplify import Simplify
 
+
 class Snapper():
     def __init__(self, segments, reference,
                  threshold=0.01):
