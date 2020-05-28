@@ -9,7 +9,7 @@ class OSMparser():
         self.inv = {}  # node inventory
         self.nodes = {}
         self.ways = {}
-        # OSM way tags
+        # OSM highway tags
         self.tags = {
             'motorway': 1,
             'trunk': 1,
@@ -40,7 +40,6 @@ class OSMparser():
 
             if not mode:
                 self.render_tag_menu()
-                print(self.tags)
 
             self.file = open(self.filename, 'r')
             line = self.file.readline()
@@ -71,14 +70,16 @@ class OSMparser():
     # process ways
     def process_way(self, line, row):
         if '<way' in line:
+            found = False
+
             # read id
             id = line.replace('<way id="', '') \
-                .replace('">', '') \
-                .strip('\t') \
-                .strip('\n')
+                     .replace('">', '') \
+                     .strip('\t') \
+                     .strip('\n')
 
-            # initialize way
-            self.ways[id] = []
+            # initialize refs
+            refs = []
 
             # recover all node refs
             while '</way>' not in line:
@@ -86,15 +87,42 @@ class OSMparser():
                 row += 1
                 line = self.file.readline()
 
-                if '<nd' not in line: break
-                ref = line.replace('<nd ref="', '') \
-                    .replace('"/>', '') \
-                    .strip('\t') \
-                    .strip('\n')
+                if '<nd' in line:
+                    # check ref
+                    ref = line.replace('<nd ref="', '') \
+                              .replace('"/>', '') \
+                              .strip('\t') \
+                              .strip('\n')
 
-                # append to way and inventory
-                self.ways[id].append(ref)
-                self.inv[ref] = True
+                    # append to refs
+                    refs.append(ref)
+                elif '<tag' in line:
+                    # check tag
+                    tag = line.replace('<tag', '') \
+                              .replace('/>', '') \
+                              .strip('\t') \
+                              .strip('\n') \
+                              .split()
+
+                    # get key & value
+                    key = tag[0].strip('k=').strip('"')
+                    value = tag[1].strip('v=').strip('"')
+
+                    # check highway tag
+                    if key == 'highway':
+                        if value in self.tags and \
+                           self.tags[value]:
+                            found = True
+                        break
+
+            # if tag is found, then
+            if found:
+                # append way with references
+                self.ways[id] = refs
+
+                # append refs to node inventory to recover later
+                for ref in refs:
+                    self.inv[ref] = True
 
         return row
 
@@ -120,13 +148,13 @@ class OSMparser():
     def render_tag_menu(self):
         # initialize menu
         root = Tk()
-        width, height = 1000, 1000
+        width, height = 260, 280
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
         x = (screen_width / 2) - (width / 2)
         y = (screen_height / 2) - (height / 2)
         root.geometry('%dx%d+%d+%d' % (width, height, x, y))
-        root.title('OSM Way Tags')
+        root.title('OSM Highway Tags')
 
         # render tags
         row, column = 0, 0
@@ -157,6 +185,7 @@ class OSMparser():
             for button in buttons:
                 button.deselect()
 
+        # extra buttons (continue, select etc.)
         Button(root, text='Continue', command=quit).grid(row=n + 1, column=0, padx=20, pady=20)
         Button(root, text='Select all', command=select).grid(row=n + 2, column=0, padx=20)
         Button(root, text='Quit', command=exit).grid(row=n + 1, column=1, padx=20, pady=20)
