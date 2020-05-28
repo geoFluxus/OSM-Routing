@@ -1,11 +1,10 @@
 from __future__ import print_function
 import builtins as __builtin__
-import time
+from time import strftime, gmtime
 
 
 def print(*args, **kwargs):
-    local_time = time.localtime()
-    __builtin__.print(time.strftime('%a, %d %b %Y %H:%M:%S', local_time), end=": ")
+    __builtin__.print(strftime("%H:%M:%S", gmtime()), end=": ")
     return __builtin__.print(*args, **kwargs)
 
 
