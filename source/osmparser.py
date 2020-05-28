@@ -1,3 +1,7 @@
+from tkinter import *
+from math import floor
+
+
 class OSMparser():
     def __init__(self, filename):
         self.filename = filename
@@ -5,6 +9,19 @@ class OSMparser():
         self.inv = {}  # node inventory
         self.nodes = {}
         self.ways = {}
+        # OSM way tags
+        self.tags = {
+            'motorway': 1,
+            'trunk': 1,
+            'primary': 1,
+            'secondary': 1,
+            'tertiary': 0,
+            'motorway_link': 1,
+            'trunk_link': 1,
+            'primary_link': 1,
+            'secondary_link': 1,
+             'tertiary_link': 0
+        }
 
     def readfile(self):
         # Open file
@@ -20,6 +37,10 @@ class OSMparser():
         for mode in range(2):
             msg = 'Processing nodes...' if mode else 'Processing ways...'
             print(msg)
+
+            if not mode:
+                self.render_tag_menu()
+                print(self.tags)
 
             self.file = open(self.filename, 'r')
             line = self.file.readline()
@@ -55,21 +76,26 @@ class OSMparser():
                 .replace('">', '') \
                 .strip('\t') \
                 .strip('\n')
+
             # initialize way
             self.ways[id] = []
+
             # recover all node refs
             while '</way>' not in line:
                 # read node ref
                 row += 1
                 line = self.file.readline()
+
                 if '<nd' not in line: break
                 ref = line.replace('<nd ref="', '') \
                     .replace('"/>', '') \
                     .strip('\t') \
                     .strip('\n')
+
                 # append to way and inventory
                 self.ways[id].append(ref)
                 self.inv[ref] = True
+
         return row
 
     # process nodes
@@ -90,3 +116,50 @@ class OSMparser():
                 lat = float(tags[1].strip('lat=').strip('"'))
                 lon = float(tags[2].strip('lon=').strip('"'))
                 self.nodes[id] = (lat, lon)
+
+    def render_tag_menu(self):
+        # initialize menu
+        root = Tk()
+        width, height = 1000, 1000
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        x = (screen_width / 2) - (width / 2)
+        y = (screen_height / 2) - (height / 2)
+        root.geometry('%dx%d+%d+%d' % (width, height, x, y))
+        root.title('OSM Way Tags')
+
+        # render tags
+        row, column = 0, 0
+        n = floor(len(self.tags) / 2)
+        variables, buttons = [], []
+        for tag in self.tags:
+            var = IntVar(root, value=self.tags[tag])
+            button = Checkbutton(root, text=tag, variable=var)
+            button.grid(row=row, column=column, pady=5, sticky='w')
+            row += 1
+            if row >= n:
+                column = 1
+                row -= n
+            variables.append(var)
+            buttons.append(button)
+
+        def quit():
+            for tag, var in zip(self.tags, variables):
+                self.tags[tag] = var.get()
+            root.quit()
+            root.withdraw()
+
+        def select():
+            for button in buttons:
+                button.select()
+
+        def deselect():
+            for button in buttons:
+                button.deselect()
+
+        Button(root, text='Continue', command=quit).grid(row=n + 1, column=0, padx=20, pady=20)
+        Button(root, text='Select all', command=select).grid(row=n + 2, column=0, padx=20)
+        Button(root, text='Quit', command=exit).grid(row=n + 1, column=1, padx=20, pady=20)
+        Button(root, text='Deselect all', command=deselect).grid(row=n + 2, column=1, padx=20)
+
+        root.mainloop()
