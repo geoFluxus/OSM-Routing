@@ -1,5 +1,5 @@
 from tkinter import *
-from math import floor
+from math import ceil
 from source.utils import print
 
 
@@ -17,6 +17,7 @@ class OSMparser():
             'primary': 1,
             'secondary': 1,
             'tertiary': 0,
+            'residential': 0,
             'motorway_link': 1,
             'trunk_link': 1,
             'primary_link': 1,
@@ -151,7 +152,7 @@ class OSMparser():
     def render_tag_menu(self):
         # initialize menu
         root = Tk()
-        width, height = 260, 280
+        width, height = 280, 320
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
         x = (screen_width / 2) - (width / 2)
@@ -161,7 +162,7 @@ class OSMparser():
 
         # render tags
         row, column = 0, 0
-        n = floor(len(self.tags) / 2)
+        n = ceil(len(self.tags) / 2)
         variables, buttons = [], []
         for tag in self.tags:
             var = IntVar(root, value=self.tags[tag])
