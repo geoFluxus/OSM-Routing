@@ -22,7 +22,8 @@ class OSMparser():
             'trunk_link': 1,
             'primary_link': 1,
             'secondary_link': 1,
-            'tertiary_link': 0
+            'tertiary_link': 0,
+            'ferry': 0,
         }
 
     def readfile(self):
@@ -113,7 +114,7 @@ class OSMparser():
                     value = tag[1].strip('v=').strip('"')
 
                     # check highway tag
-                    if key == 'highway':
+                    if key in ['highway', 'route']:
                         if value in self.tags and \
                            self.tags[value]:
                             found = True
