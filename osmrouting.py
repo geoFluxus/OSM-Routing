@@ -66,11 +66,14 @@ if filename.endswith('.osm'):
     simplify = Simplify(network, epsg, resolution)
 
     # check (stringify OR simplify?)
-    print('Simplification started...', end="\r", flush=True)
+    print('Simplification started...')
 
     # simplification
+    print('Stringify...')
     simplify.stringify()
-    simplify.simplify()
+    if resolution:
+        print('Simplify...')
+        simplify.simplify()
 
     # export file
     def export(name):
